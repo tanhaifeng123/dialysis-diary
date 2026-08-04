@@ -795,6 +795,53 @@ body {
     border-bottom: 1px solid var(--border);
 }
 
+/* 食物类别折叠 */
+.food-category-group {
+    margin-bottom: 10px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+}
+
+.food-category-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 14px;
+    background: #F5F7FA;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    min-height: 44px;
+}
+
+.food-category-header:active {
+    opacity: 0.7;
+}
+
+.food-category-toggle {
+    font-size: 10px;
+    color: var(--primary);
+    width: 14px;
+    flex-shrink: 0;
+}
+
+.food-category-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+    flex: 1;
+}
+
+.food-category-count {
+    font-size: 11px;
+    color: var(--text-light);
+}
+
+.food-category-body {
+    padding: 10px;
+}
+
 .food-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
