@@ -354,7 +354,7 @@ var RecordManager = {
                 '<button class="btn-danger record-item-delete" onclick="RecordManager.remove(\'' + r.id + '\')" aria-label="删除记录">删除</button>' +
             '</div>' +
             '<div class="record-item-header">' +
-                '<span class="record-item-date">' + self.formatDate(r.date) + '</span>' +
+                '<span class="record-item-date">' + self.formatDate(r.date) + ' <span class="date-type-badge ' + r.type + '">' + r.type + '</span></span>' +
                 '<span class="record-type-tag ' + r.type + '">' + (self.TYPE_MAP[r.type] || r.type) + '</span>' +
                 pendingBadge +
             '</div>' +
