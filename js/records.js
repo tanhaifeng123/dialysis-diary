@@ -355,7 +355,6 @@ var RecordManager = {
             '</div>' +
             '<div class="record-item-header">' +
                 '<span class="record-item-date">' + self.formatDate(r.date) + ' <span class="date-type-badge ' + r.type + '">' + r.type + '</span></span>' +
-                '<span class="record-type-tag ' + r.type + '">' + (self.TYPE_MAP[r.type] || r.type) + '</span>' +
                 pendingBadge +
             '</div>' +
             gainRateHtml +
