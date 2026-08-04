@@ -344,8 +344,15 @@ var RecordManager = {
             ? (r.preWeight - r.postWeight).toFixed(1) + ' kg'
             : '—';
 
-        // 使用记录保存时存储的涨水率（不随干体重变化重新计算）
+        // 使用记录保存时存储的涨水率；如果没有则实时补算并存储
         var gainRate = (r.gainRate !== undefined && r.gainRate !== null) ? r.gainRate : null;
+        if (gainRate === null && self.dryWeight) {
+            gainRate = self.calcGainRate(r.preWeight, r.clothesWeight);
+            // 补存到记录中
+            r.gainRate = gainRate;
+            r.dryWeightAtSave = self.dryWeight;
+            self.save();
+        }
         var gainRateHtml = '';
         if (gainRate !== null) {
             var level = self.gainRateLevel(gainRate);
