@@ -150,7 +150,7 @@ var App = {
         resultBox.innerHTML = html;
     },
 
-    // 渲染食物列表
+    // 渲染食物列表（按类别折叠）
     renderFoods(level) {
         const list = document.getElementById('foodList');
         const foodData = FOOD_DATA[level];
@@ -170,13 +170,37 @@ var App = {
                     '<div class="food-item-tip">' + f.tip + '</div>' +
                     '</div>';
             }).join('');
-            html += '<div>' +
-                '<div class="food-category-title">' + category + '</div>' +
-                '<div class="food-grid">' + foodItemsHtml + '</div>' +
-                '</div>';
+            // 第一个类别默认展开，其余折叠
+            var expanded = (i === 0);
+            html += '<div class="food-category-group' + (expanded ? ' expanded' : '') + '">' +
+                '<div class="food-category-header" onclick="App.toggleFoodCategory(this)">' +
+                    '<span class="food-category-toggle">' + (expanded ? '▼' : '▶') + '</span>' +
+                    '<span class="food-category-name">' + category + '</span>' +
+                    '<span class="food-category-count">' + foods.length + ' 种</span>' +
+                '</div>' +
+                '<div class="food-category-body"' + (expanded ? '' : ' style="display:none"') + '>' +
+                    '<div class="food-grid">' + foodItemsHtml + '</div>' +
+                '</div>' +
+            '</div>';
         }
 
         list.innerHTML = html;
+    },
+
+    // 展开/折叠食物类别
+    toggleFoodCategory(headerEl) {
+        var group = headerEl.parentNode;
+        var body = headerEl.nextElementSibling;
+        var icon = headerEl.querySelector('.food-category-toggle');
+        if (group.classList.contains('expanded')) {
+            group.classList.remove('expanded');
+            body.style.display = 'none';
+            icon.textContent = '▶';
+        } else {
+            group.classList.add('expanded');
+            body.style.display = 'block';
+            icon.textContent = '▼';
+        }
     },
 
     // PWA 安装
