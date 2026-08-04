@@ -121,16 +121,27 @@ var RecordManager = {
         hint.className = 'gain-rate-hint ' + level;
     },
 
-    // 加载记录（含旧数据兼容：<=10 的值视为 L，自动转 mL）
+    // 加载记录（含旧数据兼容）
     load() {
         var data = localStorage.getItem(this.STORAGE_KEY);
         this.records = data ? JSON.parse(data) : [];
-        // 兼容旧数据：减水量 <=10 视为升，×1000 转毫升
         var migrated = false;
+        
+        // 先加载干体重，用于补算旧记录的涨水率
+        var dw = localStorage.getItem(this.DRY_WEIGHT_KEY);
+        this.dryWeight = dw ? parseFloat(dw) : null;
+        
         for (var i = 0; i < this.records.length; i++) {
             var r = this.records[i];
-            if (r.fluidRemoved <= 10) {
+            // 兼容旧数据：减水量 <=10 视为升，×1000 转毫升
+            if (r.fluidRemoved && r.fluidRemoved <= 10) {
                 r.fluidRemoved = Math.round(r.fluidRemoved * 1000);
+                migrated = true;
+            }
+            // 兼容旧数据：没有 gainRate 字段的记录，用当前干体重补算一次并存储
+            if (r.gainRate === undefined && this.dryWeight) {
+                r.gainRate = this.calcGainRate(r.preWeight, r.clothesWeight);
+                r.dryWeightAtSave = this.dryWeight;
                 migrated = true;
             }
         }
@@ -334,7 +345,7 @@ var RecordManager = {
             : '—';
 
         // 使用记录保存时存储的涨水率（不随干体重变化重新计算）
-        var gainRate = r.gainRate !== undefined ? r.gainRate : null;
+        var gainRate = (r.gainRate !== undefined && r.gainRate !== null) ? r.gainRate : null;
         var gainRateHtml = '';
         if (gainRate !== null) {
             var level = self.gainRateLevel(gainRate);
