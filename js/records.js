@@ -43,9 +43,9 @@ var RecordManager = {
         this.dryWeight = val;
         localStorage.setItem(this.DRY_WEIGHT_KEY, val.toString());
         this.renderDryWeight();
-        this.render();  // 重新渲染记录列表（更新涨水率）
+        this.render();  // 重新渲染记录列表（历史记录涨水率不变，只更新表单提示）
         this.updateGainRateHint();  // 更新表单中的涨水率提示
-        App.showToast('干体重已保存');
+        App.showToast('干体重已保存，后续新记录将使用新干体重');
     },
 
     // 渲染干体重区域
@@ -187,7 +187,7 @@ var RecordManager = {
         document.getElementById('fluidRemoved').value = record.fluidRemoved || '';
         document.getElementById('notes').value = record.notes || '';
 
-        // 更新涨水率提示
+        // 更新涨水率提示（编辑时按当前表单值实时计算）
         this.updateGainRateHint();
 
         // 切换到记录页
@@ -266,14 +266,14 @@ var RecordManager = {
             var month = parseInt(monthKey.substring(5, 7), 10);
             var monthLabel = year + '年' + month + '月';
 
-            // 计算该月统计
+            // 计算该月统计（使用记录保存时的涨水率，不随干体重变化）
             var monthGainSum = 0;
             var monthGainCount = 0;
             var monthFluidSum = 0;
             var monthFluidCount = 0;
             for (var ri = 0; ri < monthRecords.length; ri++) {
-                var gr = self.calcGainRate(monthRecords[ri].preWeight, monthRecords[ri].clothesWeight);
-                if (gr !== null) { monthGainSum += gr; monthGainCount++; }
+                var gr = monthRecords[ri].gainRate;
+                if (gr !== null && gr !== undefined) { monthGainSum += gr; monthGainCount++; }
                 if (monthRecords[ri].fluidRemoved) { monthFluidSum += monthRecords[ri].fluidRemoved; monthFluidCount++; }
             }
             var avgGain = monthGainCount > 0 ? (Math.round(monthGainSum / monthGainCount * 10) / 10) : null;
@@ -333,8 +333,8 @@ var RecordManager = {
             ? (r.preWeight - r.postWeight).toFixed(1) + ' kg'
             : '—';
 
-        // 计算涨水率
-        var gainRate = self.calcGainRate(r.preWeight, r.clothesWeight);
+        // 使用记录保存时存储的涨水率（不随干体重变化重新计算）
+        var gainRate = r.gainRate !== undefined ? r.gainRate : null;
         var gainRateHtml = '';
         if (gainRate !== null) {
             var level = self.gainRateLevel(gainRate);
@@ -355,7 +355,7 @@ var RecordManager = {
             '</div>' +
             '<div class="record-item-header">' +
                 '<span class="record-item-date">' + self.formatDate(r.date) + '</span>' +
-                '<span class="record-type-tag ' + r.type + '">' + r.type + '</span>' +
+                '<span class="record-type-tag ' + r.type + '">' + (self.TYPE_MAP[r.type] || r.type) + '</span>' +
                 pendingBadge +
             '</div>' +
             gainRateHtml +
@@ -410,7 +410,9 @@ var RecordManager = {
                     clothesWeight: parseFloat(document.getElementById('clothesWeight').value) || 0,
                     postWeight: postWeight,
                     fluidRemoved: fluidRemoved,
-                    notes: document.getElementById('notes').value.trim()
+                    notes: document.getElementById('notes').value.trim(),
+                    gainRate: self.calcGainRate(preWeight, parseFloat(document.getElementById('clothesWeight').value) || 0),
+                    dryWeightAtSave: self.dryWeight  // 记录当时的干体重
                 };
                 self.update(self.editingId, record);
                 self.cancelEdit();
@@ -425,7 +427,9 @@ var RecordManager = {
                     clothesWeight: parseFloat(document.getElementById('clothesWeight').value) || 0,
                     postWeight: postWeight,
                     fluidRemoved: fluidRemoved,
-                    notes: document.getElementById('notes').value.trim()
+                    notes: document.getElementById('notes').value.trim(),
+                    gainRate: self.calcGainRate(preWeight, parseFloat(document.getElementById('clothesWeight').value) || 0),
+                    dryWeightAtSave: self.dryWeight  // 记录当时的干体重
                 };
                 self.add(record);
                 form.reset();
@@ -468,6 +472,16 @@ var RecordManager = {
         // 衣服重量输入时实时重算涨水率
         document.getElementById('clothesWeight').addEventListener('input', function() {
             self.updateGainRateHint();
+        });
+
+        // 输入框聚焦时自动滚动到可见位置（移动端键盘弹起时不遮挡）
+        var formInputs = document.querySelectorAll('#recordForm input, #recordForm select, #recordForm textarea');
+        formInputs.forEach(function(el) {
+            el.addEventListener('focus', function() {
+                setTimeout(function() {
+                    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }, 300);
+            });
         });
     },
 
