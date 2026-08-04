@@ -1,6 +1,6 @@
 // Service Worker - 离线缓存
 
-const CACHE_NAME = 'dialysis-workbench-v10';
+const CACHE_NAME = 'dialysis-workbench-v12';
 const ASSETS = [
     './',
     './index.html',
@@ -8,13 +8,10 @@ const ASSETS = [
     './js/app.js',
     './js/records.js',
     './js/stats.js',
-    './js/videos.js',
     './js/foods.js',
     './js/tasks.js',
-    './js/chart.umd.min.js',
     './manifest.json',
     './icons/icon-192.png',
-    './icons/icon-512.png',
     './icons/icon.svg',
     './icons/favicon.svg'
 ];
