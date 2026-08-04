@@ -474,6 +474,21 @@ body {
     font-size: 15px;
 }
 
+.date-type-badge {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 1px 6px;
+    border-radius: 4px;
+    margin-left: 4px;
+    vertical-align: middle;
+}
+.date-type-badge.HD { background: #E3F2FD; color: #1565C0; }
+.date-type-badge.HDF { background: #E0F2F1; color: #00695C; }
+.date-type-badge.HP { background: #FFF3E0; color: #E65100; }
+.date-type-badge.HFHD { background: #E8EAF6; color: #283593; }
+.date-type-badge.PD { background: #F3E5F5; color: #6A1B9A; }
+
 .record-type-tag {
     font-size: 12px;
     padding: 2px 8px;
