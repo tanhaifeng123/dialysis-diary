@@ -3,6 +3,7 @@
 var StatsManager = {
     charts: {},
     currentMonth: null,  // 格式 "2026-08"
+    chartLoaded: false,  // Chart.js 是否已加载
 
     // 透析类型颜色映射
     TYPE_COLORS: {
@@ -22,7 +23,30 @@ var StatsManager = {
         this.currentMonth = now.getFullYear() + '-' + m;
 
         this.bindMonthNav();
-        this.refresh();
+        this.renderMonthLabel();
+        this.renderOverview();
+    },
+
+    // 确保 Chart.js 已加载
+    loadChart(callback) {
+        if (typeof Chart !== 'undefined') {
+            callback();
+            return;
+        }
+        // Chart.js 还没加载完（defer），等一下再试
+        var attempts = 0;
+        var self = this;
+        var timer = setInterval(function() {
+            attempts++;
+            if (typeof Chart !== 'undefined') {
+                clearInterval(timer);
+                self.chartLoaded = true;
+                callback();
+            } else if (attempts > 20) {
+                clearInterval(timer);
+                App.showToast('图表加载失败，请检查网络');
+            }
+        }, 100);
     },
 
     // 月份导航按钮
@@ -71,7 +95,10 @@ var StatsManager = {
     refresh() {
         this.renderMonthLabel();
         this.renderOverview();
-        this.renderCharts();
+        var self = this;
+        this.loadChart(function() {
+            self.renderCharts();
+        });
     },
 
     // 渲染月份标签
