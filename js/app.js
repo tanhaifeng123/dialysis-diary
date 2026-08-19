@@ -1,11 +1,41 @@
 // ========== 主应用逻辑 ==========
 
+// 合并扩充食物数据（按食物名称去重：同名条目以原数据为准，不覆盖）
+function mergeFoodData(base, extra) {
+    if (!extra) return;
+    ['low', 'mid', 'high'].forEach(function(level) {
+        var extraLevel = extra[level];
+        if (!extraLevel || !base[level]) return;
+        // 收集该档位下所有已有食物名称（跨类别去重，避免同一食物出现在两个类别）
+        var allNames = {};
+        Object.keys(base[level].categories).forEach(function(cat) {
+            base[level].categories[cat].forEach(function(f) { allNames[f.name] = true; });
+        });
+        Object.keys(extraLevel.categories).forEach(function(cat) {
+            if (!base[level].categories[cat]) base[level].categories[cat] = [];
+            extraLevel.categories[cat].forEach(function(f) {
+                if (!allNames[f.name]) {
+                    base[level].categories[cat].push(f);
+                    allNames[f.name] = true;
+                }
+            });
+        });
+    });
+}
+
 var App = {
     // Toast 定时器
     toastTimer: null,
 
     // 初始化
     init() {
+        // 合并扩充食物数据（钾/磷/优质蛋白）
+        if (typeof FOOD_EXTRA !== 'undefined') {
+            mergeFoodData(FOOD_DATA, FOOD_EXTRA.k);
+            mergeFoodData(PHOS_DATA, FOOD_EXTRA.p);
+            mergeFoodData(PROTEIN_DATA, FOOD_EXTRA.pr);
+        }
+
         this.initTabNav();
         this.initMineralSwitch();
         this.initFoodTabs();
