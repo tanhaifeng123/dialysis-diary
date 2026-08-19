@@ -857,7 +857,20 @@ body {
     margin-bottom: 10px;
     border: 1px solid var(--border);
     border-radius: var(--radius-sm);
-    overflow: hidden;
+    /* 注意：不能设置 overflow:hidden，否则折叠头的吸顶(sticky)会失效 */
+}
+
+/* 展开时：折叠头顶部圆角、内容底部圆角；折叠时：折叠头全圆角 */
+.food-category-group.expanded .food-category-header {
+    border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+}
+
+.food-category-group:not(.expanded) .food-category-header {
+    border-radius: var(--radius-sm);
+}
+
+.food-category-group.expanded .food-category-body {
+    border-radius: 0 0 var(--radius-sm) var(--radius-sm);
 }
 
 .food-category-header {
@@ -870,6 +883,11 @@ body {
     -webkit-tap-highlight-color: transparent;
     touch-action: manipulation;
     min-height: 44px;
+    /* 吸顶：上滑后折叠按钮始终停留在屏幕顶部（顶部标题栏下方），随时可点击折叠 */
+    position: sticky;
+    top: var(--sticky-offset, 57px);
+    z-index: 10;
+    box-shadow: 0 1px 0 var(--border);
 }
 
 .food-category-header:active {

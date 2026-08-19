@@ -19,6 +19,16 @@ var App = {
         // 初始渲染食物
         this.renderFoods('low');
 
+        // 折叠头吸顶偏移：跟随顶部标题栏实际高度（不同设备字体缩放下也精确贴合）
+        var setStickyOffset = function() {
+            var headerEl = document.querySelector('.app-header');
+            if (headerEl) {
+                document.documentElement.style.setProperty('--sticky-offset', headerEl.offsetHeight + 'px');
+            }
+        };
+        setStickyOffset();
+        window.addEventListener('resize', setStickyOffset);
+
         // 注册 Service Worker
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
