@@ -927,6 +927,30 @@ body {
     border-color: #FFCDD2;
 }
 
+/* 蛋白模式下颜色语义反转：透析患者需保证蛋白摄入，高蛋白=绿色（推荐） */
+.protein-mode .food-item.high {
+    background: #E8F5E9;
+    border-color: #C8E6C9;
+}
+
+.protein-mode .food-item.mid {
+    background: #FFF8E1;
+    border-color: #FFE0B2;
+}
+
+.protein-mode .food-item.low {
+    background: #F3F4F6;
+    border-color: #E5E7EB;
+}
+
+.protein-mode .food-tab-btn[data-level="low"] .food-tab-icon {
+    background: #A0AEC0;
+}
+
+.protein-mode .food-tab-btn[data-level="high"] .food-tab-icon {
+    background: var(--success);
+}
+
 .food-item-name {
     font-size: 14px;
     font-weight: 500;
