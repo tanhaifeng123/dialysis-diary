@@ -7,6 +7,7 @@ var App = {
     // 初始化
     init() {
         this.initTabNav();
+        this.initMineralSwitch();
         this.initFoodTabs();
         this.initPWA();
 
@@ -50,6 +51,68 @@ var App = {
                 }
             });
         });
+    },
+
+    // 矿物质切换（钾/磷）
+    initMineralSwitch() {
+        var self = this;
+        this.foodMineral = 'k';
+        var btns = document.querySelectorAll('.mineral-switch-btn');
+        btns.forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                if (self.foodMineral === btn.dataset.mineral) return;
+                btns.forEach(function(b) { b.classList.remove('active'); });
+                btn.classList.add('active');
+                self.foodMineral = btn.dataset.mineral;
+                self.updateFoodMineralUI();
+
+                // 清空搜索，重置到低含量分类
+                document.getElementById('foodSearch').value = '';
+                document.getElementById('foodSearchResult').classList.remove('active');
+                document.getElementById('foodList').style.display = '';
+                var tabBtns = document.querySelectorAll('.food-tab-btn');
+                tabBtns.forEach(function(b) {
+                    b.classList.toggle('active', b.dataset.level === 'low');
+                });
+                self.renderFoods('low');
+            });
+        });
+    },
+
+    // 根据当前矿物质更新页面文案
+    updateFoodMineralUI() {
+        var isP = this.foodMineral === 'p';
+        document.getElementById('foodCardTitle').textContent = isP ? '磷含量食物参考' : '钾含量食物参考';
+        document.getElementById('foodIntro').innerHTML = isP
+            ? '透析患者需控制磷摄入，每日建议 <strong>800-1000mg</strong> 磷。<br>💡 优选磷/蛋白比低的食物（如鸡蛋白）；加工食品中的无机磷吸收率近100%，尽量避免。'
+            : '透析患者需控制钾摄入，每日建议 <strong>2-3g</strong> 钾。';
+        document.getElementById('foodDisclaimer').textContent = isP
+            ? '仅供参考，具体以实际食物磷含量为准'
+            : '仅供参考，具体以实际食物钾含量为准';
+        document.getElementById('foodSource').textContent = isP
+            ? '数据来源：《中国食物成分表·标准版（第6版）》、USDA FoodData Central 及医院卫教资料；数值为每100g可食部近似值，因品种、产地、加工方式而异'
+            : '数据来源：《中国食物成分表·标准版（第6版）》+ 武汉第三医院/复旦中山医院透析患者饮食指南';
+
+        var labels = isP
+            ? { low: '低磷', mid: '中磷', high: '高磷' }
+            : { low: '低钾', mid: '中钾', high: '高钾' };
+        var ranges = isP
+            ? { low: '<100mg', mid: '100-300mg', high: '>300mg' }
+            : { low: '<150mg', mid: '150-250mg', high: '>250mg' };
+        document.querySelectorAll('.food-tab-btn').forEach(function(btn) {
+            btn.querySelector('.food-tab-label').textContent = labels[btn.dataset.level];
+            btn.querySelector('.food-tab-range').textContent = ranges[btn.dataset.level];
+        });
+    },
+
+    // 获取当前矿物质的食物数据集
+    getFoodDataSet(level) {
+        return (this.foodMineral === 'p' ? PHOS_DATA : FOOD_DATA)[level];
+    },
+
+    // 获取食物的矿物质数值
+    getFoodVal(f) {
+        return this.foodMineral === 'p' ? f.p : f.k;
     },
 
     // 食物分类 Tab
@@ -101,11 +164,16 @@ var App = {
     searchFoods(keyword) {
         var results = [];
         var levels = ['low', 'mid', 'high'];
-        var levelNames = { low: '低钾', mid: '中钾', high: '高钾' };
+        var isP = this.foodMineral === 'p';
+        var levelNames = isP
+            ? { low: '低磷', mid: '中磷', high: '高磷' }
+            : { low: '低钾', mid: '中钾', high: '高钾' };
+        var dataset = isP ? PHOS_DATA : FOOD_DATA;
+        var getVal = isP ? function(f) { return f.p; } : function(f) { return f.k; };
 
         // 遍历所有食物数据
         levels.forEach(function(level) {
-            var foodData = FOOD_DATA[level];
+            var foodData = dataset[level];
             var keys = Object.keys(foodData.categories);
             keys.forEach(function(category) {
                 var foods = foodData.categories[category];
@@ -115,7 +183,7 @@ var App = {
                         category.toLowerCase().indexOf(keyword) !== -1) {
                         results.push({
                             name: f.name,
-                            k: f.k,
+                            val: getVal(f),
                             tip: f.tip,
                             level: level,
                             levelName: levelNames[level],
@@ -133,15 +201,15 @@ var App = {
             return;
         }
 
-        // 按钾含量从低到高排序
-        results.sort(function(a, b) { return a.k - b.k; });
+        // 按含量从低到高排序
+        results.sort(function(a, b) { return a.val - b.val; });
 
         var html = '<div class="food-search-result-title">找到 ' + results.length + ' 种食物</div>';
         html += '<div class="food-grid">';
         results.forEach(function(r) {
             html += '<div class="food-item ' + r.level + '">' +
                 '<div class="food-item-name">' + r.name + '</div>' +
-                '<div class="food-item-k">' + r.k + ' mg/100g</div>' +
+                '<div class="food-item-k">' + r.val + ' mg/100g</div>' +
                 '<div class="food-item-tip">' + r.levelName + ' · ' + r.category + '</div>' +
                 '</div>';
         });
@@ -152,8 +220,9 @@ var App = {
 
     // 渲染食物列表（按类别折叠）
     renderFoods(level) {
+        var self = this;
         const list = document.getElementById('foodList');
-        const foodData = FOOD_DATA[level];
+        const foodData = this.getFoodDataSet(level);
 
         if (!foodData) return;
 
@@ -166,7 +235,7 @@ var App = {
             var foodItemsHtml = foods.map(function(f) {
                 return '<div class="food-item ' + level + '">' +
                     '<div class="food-item-name">' + f.name + '</div>' +
-                    '<div class="food-item-k">' + f.k + ' mg/100g</div>' +
+                    '<div class="food-item-k">' + self.getFoodVal(f) + ' mg/100g</div>' +
                     '<div class="food-item-tip">' + f.tip + '</div>' +
                     '</div>';
             }).join('');

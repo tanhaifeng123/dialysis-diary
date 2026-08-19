@@ -152,35 +152,40 @@
             </div>
         </section>
 
-        <!-- Tab 3: 钾含量食物 -->
+        <!-- Tab 3: 钾/磷含量食物 -->
         <section id="tab-foods" class="tab-page">
             <div class="card">
-                <h2 class="card-title">钾含量食物参考</h2>
-                <p class="food-intro">
-                    透析患者需控制钾摄入，每日建议 <strong>2-3g</strong> 钾。<br>
-                    <small style="color:var(--text-light)">仅供参考，具体以实际食物钾含量为准</small><br>
-                    <small style="color:var(--text-light)">数据来源：中国食物成分表标准版（第6版）+ 武汉第三医院/复旦中山医院的透析患者饮食指南</small>
+                <!-- 矿物质切换：钾 / 磷 -->
+                <div class="mineral-switch" id="mineralSwitch">
+                    <button type="button" class="mineral-switch-btn active" data-mineral="k">钾含量</button>
+                    <button type="button" class="mineral-switch-btn" data-mineral="p">磷含量</button>
+                </div>
+                <h2 class="card-title" id="foodCardTitle">钾含量食物参考</h2>
+                <p class="food-intro" id="foodIntro">
+                    透析患者需控制钾摄入，每日建议 <strong>2-3g</strong> 钾。
                 </p>
+                <p class="food-disclaimer" id="foodDisclaimer">仅供参考，具体以实际食物钾含量为准</p>
                 <div class="food-search-box">
                     <input type="text" id="foodSearch" placeholder="搜索食物名称，如：香蕉、菠菜..." autocomplete="off" inputmode="search" enterkeyhint="search">
                     <span class="food-search-icon">🔍</span>
                 </div>
                 <div id="foodSearchResult" class="food-search-result"></div>
-                <div class="food-tabs">
+                <div class="food-tabs" id="foodLevelTabs">
                     <button class="food-tab-btn active" data-level="low">
-                        <span class="food-tab-icon green"></span>低钾
-                        <small>&lt;150mg</small>
+                        <span class="food-tab-icon green"></span><span class="food-tab-label">低钾</span>
+                        <small class="food-tab-range">&lt;150mg</small>
                     </button>
                     <button class="food-tab-btn" data-level="mid">
-                        <span class="food-tab-icon yellow"></span>中钾
-                        <small>150-250mg</small>
+                        <span class="food-tab-icon yellow"></span><span class="food-tab-label">中钾</span>
+                        <small class="food-tab-range">150-250mg</small>
                     </button>
                     <button class="food-tab-btn" data-level="high">
-                        <span class="food-tab-icon red"></span>高钾
-                        <small>&gt;250mg</small>
+                        <span class="food-tab-icon red"></span><span class="food-tab-label">高钾</span>
+                        <small class="food-tab-range">&gt;250mg</small>
                     </button>
                 </div>
                 <div id="foodList" class="food-list"></div>
+                <p class="food-source" id="foodSource">数据来源：《中国食物成分表·标准版（第6版）》+ 武汉第三医院/复旦中山医院透析患者饮食指南</p>
             </div>
         </section>
 
