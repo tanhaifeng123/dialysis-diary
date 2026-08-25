@@ -27,9 +27,6 @@
 
         <!-- Tab 1: 透析记录 -->
         <section id="tab-records" class="tab-page active">
-            <!-- 透析间期提醒 -->
-            <div class="card inter-dialysis-card" id="interDialysisCard"></div>
-
             <!-- 干体重设置（只需设置一次） -->
             <div class="card dry-weight-card">
                 <h2 class="card-title">干体重设置</h2>
@@ -80,22 +77,6 @@
                     <div class="form-row">
                         <label for="fluidRemoved">减水量 (mL) <small style="font-weight:400;color:var(--text-light)">选填，下机后补填</small></label>
                         <input type="number" id="fluidRemoved" step="50" min="0" max="5000" placeholder="下机后填写" inputmode="numeric" enterkeyhint="next">
-                    </div>
-                    <div class="form-row">
-                        <label for="preBPSys">透前血压 (mmHg) <small style="font-weight:400;color:var(--text-light)">选填</small></label>
-                        <div class="bp-input-group">
-                            <input type="number" id="preBPSys" placeholder="收缩压" inputmode="numeric" min="60" max="250" enterkeyhint="next">
-                            <span class="bp-separator">/</span>
-                            <input type="number" id="preBPDia" placeholder="舒张压" inputmode="numeric" min="40" max="150" enterkeyhint="next">
-                        </div>
-                    </div>
-                    <div class="form-row">
-                        <label for="postBPSys">透后血压 (mmHg) <small style="font-weight:400;color:var(--text-light)">选填，下机后补填</small></label>
-                        <div class="bp-input-group">
-                            <input type="number" id="postBPSys" placeholder="收缩压" inputmode="numeric" min="60" max="250" enterkeyhint="next">
-                            <span class="bp-separator">/</span>
-                            <input type="number" id="postBPDia" placeholder="舒张压" inputmode="numeric" min="40" max="150" enterkeyhint="next">
-                        </div>
                     </div>
                     <div class="form-row">
                         <label>透析症状 <small style="font-weight:400;color:var(--text-light)">选填，点击选择</small></label>
@@ -175,14 +156,6 @@
                 <h2 class="card-title">减水量趋势</h2>
                 <div class="chart-container">
                     <canvas id="fluidChart"></canvas>
-                </div>
-            </div>
-
-            <!-- 血压趋势 -->
-            <div class="card">
-                <h2 class="card-title">血压趋势</h2>
-                <div class="chart-container">
-                    <canvas id="bpChart"></canvas>
                 </div>
             </div>
 

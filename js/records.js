@@ -19,16 +19,6 @@ var RecordManager = {
     // 常见透析症状列表
     SYMPTOM_LIST: ['抽筋', '皮肤瘙痒', '头晕', '恶心呕吐', '胸闷', '头痛', '乏力', '气短', '低血压', '高血压'],
 
-    // 血压等级：返回 {level, text}
-    bpLevel(sys, dia) {
-        if (!sys || !dia) return null;
-        if (sys >= 180 || dia >= 110) return { level: 'danger', text: '高血压3级' };
-        if (sys >= 160 || dia >= 100) return { level: 'danger', text: '高血压2级' };
-        if (sys >= 140 || dia >= 90) return { level: 'warning', text: '高血压1级' };
-        if (sys < 90 || dia < 60) return { level: 'warning', text: '偏低' };
-        return { level: 'normal', text: '正常' };
-    },
-
     // 初始化
     init() {
         this.load();
@@ -36,7 +26,6 @@ var RecordManager = {
         this.setDefaultDate();
         this.initSymptomTags();
         this.render();
-        this.renderInterDialysisCard();
         this.bindEvents();
     },
 
@@ -77,56 +66,6 @@ var RecordManager = {
         document.querySelectorAll('.symptom-tag.selected').forEach(function(tag) {
             tag.classList.remove('selected');
         });
-    },
-
-    // 渲染透析间期提醒卡片
-    renderInterDialysisCard() {
-        var card = document.getElementById('interDialysisCard');
-        if (!card) return;
-
-        if (this.records.length === 0) {
-            card.style.display = 'none';
-            return;
-        }
-        card.style.display = '';
-
-        var latest = this.records[0]; // 记录按日期倒序，第一条是最近的
-        var lastDate = new Date(latest.date.replace(/-/g, '/'));
-        var today = new Date();
-        today.setHours(0, 0, 0, 0);
-        lastDate.setHours(0, 0, 0, 0);
-        var daysSince = Math.floor((today - lastDate) / (1000 * 60 * 60 * 24));
-
-        var html = '';
-        html += '<div class="inter-dialysis-row">';
-        html += '<span class="inter-dialysis-label">上次透析</span>';
-        html += '<span class="inter-dialysis-value">' + this.formatDate(latest.date) + '</span>';
-        html += '<span class="date-type-badge ' + latest.type + '">' + latest.type + '</span>';
-        html += '</div>';
-
-        if (daysSince === 0) {
-            html += '<div class="inter-dialysis-row highlight"><span class="inter-dialysis-icon">✅</span>今天已透析，注意控制饮水</div>';
-        } else if (daysSince === 1) {
-            html += '<div class="inter-dialysis-row">距上次透析 <strong>' + daysSince + '</strong> 天</div>';
-        } else if (daysSince <= 2) {
-            html += '<div class="inter-dialysis-row">距上次透析 <strong>' + daysSince + '</strong> 天，注意控制饮水</div>';
-        } else if (daysSince >= 3) {
-            // 超过3天预警
-            var warningGain = '';
-            if (this.dryWeight && latest.postWeight) {
-                // 估算：从上次透后体重到现在体重的增长（无法获取当前体重，只能提示理论值）
-                var safeGain = Math.round(this.dryWeight * 0.05 * 10) / 10;
-                warningGain = '（安全涨幅应控制在干体重的5%以内，即 <strong>' + safeGain + ' kg</strong> 以内）';
-            }
-            html += '<div class="inter-dialysis-row warning">距上次透析已 <strong>' + daysSince + '</strong> 天，请尽快安排透析' + warningGain + '</div>';
-        }
-
-        // 干体重显示
-        if (this.dryWeight) {
-            html += '<div class="inter-dialysis-row"><span class="inter-dialysis-label">干体重</span><span class="inter-dialysis-value">' + this.dryWeight + ' kg</span></div>';
-        }
-
-        card.innerHTML = html;
     },
 
     // 加载干体重
@@ -301,12 +240,6 @@ var RecordManager = {
         document.getElementById('postWeight').value = record.postWeight || '';
         document.getElementById('fluidRemoved').value = record.fluidRemoved || '';
 
-        // 血压回填
-        document.getElementById('preBPSys').value = (record.preBP && record.preBP.sys) || '';
-        document.getElementById('preBPDia').value = (record.preBP && record.preBP.dia) || '';
-        document.getElementById('postBPSys').value = (record.postBP && record.postBP.sys) || '';
-        document.getElementById('postBPDia').value = (record.postBP && record.postBP.dia) || '';
-
         // 症状回填
         this.setSelectedSymptoms(record.symptoms || []);
 
@@ -480,21 +413,6 @@ var RecordManager = {
             gainRateHtml = '<span class="gain-rate-tag ' + level + '">涨水率 ' + gainRate + '%（' + text + '）' + cwText + '</span>';
         }
 
-        // 血压显示
-        var bpHtml = '';
-        if (r.preBP || r.postBP) {
-            bpHtml += '<div class="record-bp-row">';
-            if (r.preBP) {
-                var preLevel = self.bpLevel(r.preBP.sys, r.preBP.dia);
-                bpHtml += '<span class="bp-tag ' + (preLevel ? preLevel.level : '') + '">透前 ' + r.preBP.sys + '/' + r.preBP.dia + '</span>';
-            }
-            if (r.postBP) {
-                var postLevel = self.bpLevel(r.postBP.sys, r.postBP.dia);
-                bpHtml += '<span class="bp-tag ' + (postLevel ? postLevel.level : '') + '">透后 ' + r.postBP.sys + '/' + r.postBP.dia + '</span>';
-            }
-            bpHtml += '</div>';
-        }
-
         // 症状显示
         var symptomHtml = '';
         if (r.symptoms && r.symptoms.length > 0) {
@@ -518,7 +436,6 @@ var RecordManager = {
                 pendingBadge +
             '</div>' +
             gainRateHtml +
-            bpHtml +
             '<div class="record-item-data">' +
                 '<div class="record-data-item">' +
                     '<span class="record-data-label">透前体重</span>' +
@@ -561,14 +478,6 @@ var RecordManager = {
                 return;
             }
 
-            // 收集血压数据
-            var preBPSys = parseInt(document.getElementById('preBPSys').value) || 0;
-            var preBPDia = parseInt(document.getElementById('preBPDia').value) || 0;
-            var postBPSys = parseInt(document.getElementById('postBPSys').value) || 0;
-            var postBPDia = parseInt(document.getElementById('postBPDia').value) || 0;
-            var preBP = (preBPSys && preBPDia) ? { sys: preBPSys, dia: preBPDia } : null;
-            var postBP = (postBPSys && postBPDia) ? { sys: postBPSys, dia: postBPDia } : null;
-
             // 收集症状
             var symptoms = self.getSelectedSymptoms();
 
@@ -582,8 +491,6 @@ var RecordManager = {
                     clothesWeight: parseFloat(document.getElementById('clothesWeight').value) || 0,
                     postWeight: postWeight,
                     fluidRemoved: fluidRemoved,
-                    preBP: preBP,
-                    postBP: postBP,
                     symptoms: symptoms,
                     notes: document.getElementById('notes').value.trim(),
                     gainRate: self.calcGainRate(preWeight, parseFloat(document.getElementById('clothesWeight').value) || 0),
@@ -602,8 +509,6 @@ var RecordManager = {
                     clothesWeight: parseFloat(document.getElementById('clothesWeight').value) || 0,
                     postWeight: postWeight,
                     fluidRemoved: fluidRemoved,
-                    preBP: preBP,
-                    postBP: postBP,
                     symptoms: symptoms,
                     notes: document.getElementById('notes').value.trim(),
                     gainRate: self.calcGainRate(preWeight, parseFloat(document.getElementById('clothesWeight').value) || 0),
@@ -709,12 +614,6 @@ var RecordManager = {
             if (r.gainRate !== null && r.gainRate !== undefined) {
                 lines.push('  涨水率：' + r.gainRate + '%（' + self.gainRateText(r.gainRate) + '）');
             }
-
-            // 血压
-            var bpParts = [];
-            if (r.preBP) bpParts.push('透前' + r.preBP.sys + '/' + r.preBP.dia);
-            if (r.postBP) bpParts.push('透后' + r.postBP.sys + '/' + r.postBP.dia);
-            if (bpParts.length > 0) lines.push('  血压：' + bpParts.join('，'));
 
             // 症状
             if (r.symptoms && r.symptoms.length > 0) {

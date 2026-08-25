@@ -1303,27 +1303,6 @@ body {
     }
 }
 
-/* ===== 血压输入框 ===== */
-.bp-input-group {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-}
-
-.bp-input-group input {
-    flex: 1;
-    padding: 14px 8px !important;
-    text-align: center;
-    font-size: 16px;
-}
-
-.bp-separator {
-    font-size: 18px;
-    color: var(--text-light);
-    flex-shrink: 0;
-    padding: 0 2px;
-}
-
 /* ===== 症状标签选择 ===== */
 .symptom-tags {
     display: flex;
@@ -1359,36 +1338,6 @@ body {
     font-weight: 500;
 }
 
-/* ===== 历史记录中的血压显示 ===== */
-.record-bp-row {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-}
-
-.bp-tag {
-    display: inline-block;
-    padding: 3px 10px;
-    border-radius: 6px;
-    font-size: 13px;
-    font-weight: 500;
-}
-
-.bp-tag.normal {
-    background: #E8F5E9;
-    color: var(--success);
-}
-
-.bp-tag.warning {
-    background: #FFF8E1;
-    color: var(--warning);
-}
-
-.bp-tag.danger {
-    background: #FFEBEE;
-    color: var(--danger);
-}
-
 /* ===== 历史记录中的症状显示 ===== */
 .record-symptom-row {
     display: flex;
@@ -1403,44 +1352,6 @@ body {
     color: #C62828;
     border-radius: 4px;
     font-size: 12px;
-}
-
-/* ===== 透析间期提醒卡片 ===== */
-.inter-dialysis-card {
-    background: linear-gradient(135deg, #E3F2FD, #E8EAF6);
-}
-
-.inter-dialysis-card:empty {
-    display: none;
-}
-
-.inter-dialysis-row {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 4px 0;
-    font-size: 14px;
-    color: var(--text);
-}
-
-.inter-dialysis-row.highlight {
-    color: var(--success);
-    font-weight: 500;
-}
-
-.inter-dialysis-row.warning {
-    color: var(--danger);
-    font-weight: 500;
-}
-
-.inter-dialysis-label {
-    color: var(--text-light);
-    font-size: 13px;
-    min-width: 64px;
-}
-
-.inter-dialysis-value {
-    font-weight: 500;
 }
 
 /* ===== 导出按钮 ===== */
