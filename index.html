@@ -27,6 +27,9 @@
 
         <!-- Tab 1: 透析记录 -->
         <section id="tab-records" class="tab-page active">
+            <!-- 透析间期提醒 -->
+            <div class="card inter-dialysis-card" id="interDialysisCard"></div>
+
             <!-- 干体重设置（只需设置一次） -->
             <div class="card dry-weight-card">
                 <h2 class="card-title">干体重设置</h2>
@@ -79,6 +82,37 @@
                         <input type="number" id="fluidRemoved" step="50" min="0" max="5000" placeholder="下机后填写" inputmode="numeric" enterkeyhint="next">
                     </div>
                     <div class="form-row">
+                        <label for="preBPSys">透前血压 (mmHg) <small style="font-weight:400;color:var(--text-light)">选填</small></label>
+                        <div class="bp-input-group">
+                            <input type="number" id="preBPSys" placeholder="收缩压" inputmode="numeric" min="60" max="250" enterkeyhint="next">
+                            <span class="bp-separator">/</span>
+                            <input type="number" id="preBPDia" placeholder="舒张压" inputmode="numeric" min="40" max="150" enterkeyhint="next">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <label for="postBPSys">透后血压 (mmHg) <small style="font-weight:400;color:var(--text-light)">选填，下机后补填</small></label>
+                        <div class="bp-input-group">
+                            <input type="number" id="postBPSys" placeholder="收缩压" inputmode="numeric" min="60" max="250" enterkeyhint="next">
+                            <span class="bp-separator">/</span>
+                            <input type="number" id="postBPDia" placeholder="舒张压" inputmode="numeric" min="40" max="150" enterkeyhint="next">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <label>透析症状 <small style="font-weight:400;color:var(--text-light)">选填，点击选择</small></label>
+                        <div class="symptom-tags" id="symptomTags">
+                            <button type="button" class="symptom-tag" data-symptom="抽筋">抽筋</button>
+                            <button type="button" class="symptom-tag" data-symptom="皮肤瘙痒">皮肤瘙痒</button>
+                            <button type="button" class="symptom-tag" data-symptom="头晕">头晕</button>
+                            <button type="button" class="symptom-tag" data-symptom="恶心呕吐">恶心呕吐</button>
+                            <button type="button" class="symptom-tag" data-symptom="胸闷">胸闷</button>
+                            <button type="button" class="symptom-tag" data-symptom="头痛">头痛</button>
+                            <button type="button" class="symptom-tag" data-symptom="乏力">乏力</button>
+                            <button type="button" class="symptom-tag" data-symptom="气短">气短</button>
+                            <button type="button" class="symptom-tag" data-symptom="低血压">低血压</button>
+                            <button type="button" class="symptom-tag" data-symptom="高血压">高血压</button>
+                        </div>
+                    </div>
+                    <div class="form-row">
                         <label for="notes">备注</label>
                         <textarea id="notes" rows="2" placeholder="如有不适症状等可记录" enterkeyhint="done"></textarea>
                     </div>
@@ -93,6 +127,7 @@
                 <div class="card-header-row">
                     <h2 class="card-title">历史记录</h2>
                     <span id="recordCount" class="badge">0 条</span>
+                    <button type="button" id="exportBtn" class="btn-export">导出给医生</button>
                 </div>
                 <div id="recordList" class="record-list">
                     <p class="empty-hint">暂无记录，开始添加第一条吧</p>
@@ -140,6 +175,14 @@
                 <h2 class="card-title">减水量趋势</h2>
                 <div class="chart-container">
                     <canvas id="fluidChart"></canvas>
+                </div>
+            </div>
+
+            <!-- 血压趋势 -->
+            <div class="card">
+                <h2 class="card-title">血压趋势</h2>
+                <div class="chart-container">
+                    <canvas id="bpChart"></canvas>
                 </div>
             </div>
 

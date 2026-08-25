@@ -16,13 +16,117 @@ var RecordManager = {
         'PD': 'PD（腹膜透析）'
     },
 
+    // 常见透析症状列表
+    SYMPTOM_LIST: ['抽筋', '皮肤瘙痒', '头晕', '恶心呕吐', '胸闷', '头痛', '乏力', '气短', '低血压', '高血压'],
+
+    // 血压等级：返回 {level, text}
+    bpLevel(sys, dia) {
+        if (!sys || !dia) return null;
+        if (sys >= 180 || dia >= 110) return { level: 'danger', text: '高血压3级' };
+        if (sys >= 160 || dia >= 100) return { level: 'danger', text: '高血压2级' };
+        if (sys >= 140 || dia >= 90) return { level: 'warning', text: '高血压1级' };
+        if (sys < 90 || dia < 60) return { level: 'warning', text: '偏低' };
+        return { level: 'normal', text: '正常' };
+    },
+
     // 初始化
     init() {
         this.load();
         this.loadDryWeight();
         this.setDefaultDate();
+        this.initSymptomTags();
         this.render();
+        this.renderInterDialysisCard();
         this.bindEvents();
+    },
+
+    // 初始化症状标签点击事件
+    initSymptomTags() {
+        var tags = document.querySelectorAll('.symptom-tag');
+        tags.forEach(function(tag) {
+            tag.addEventListener('click', function() {
+                this.classList.toggle('selected');
+            });
+        });
+    },
+
+    // 获取选中的症状列表
+    getSelectedSymptoms() {
+        var selected = [];
+        document.querySelectorAll('.symptom-tag.selected').forEach(function(tag) {
+            selected.push(tag.getAttribute('data-symptom'));
+        });
+        return selected;
+    },
+
+    // 设置选中症状（编辑模式）
+    setSelectedSymptoms(symptoms) {
+        var tags = document.querySelectorAll('.symptom-tag');
+        tags.forEach(function(tag) {
+            var s = tag.getAttribute('data-symptom');
+            if (symptoms && symptoms.indexOf(s) !== -1) {
+                tag.classList.add('selected');
+            } else {
+                tag.classList.remove('selected');
+            }
+        });
+    },
+
+    // 清除症状选择
+    clearSymptoms() {
+        document.querySelectorAll('.symptom-tag.selected').forEach(function(tag) {
+            tag.classList.remove('selected');
+        });
+    },
+
+    // 渲染透析间期提醒卡片
+    renderInterDialysisCard() {
+        var card = document.getElementById('interDialysisCard');
+        if (!card) return;
+
+        if (this.records.length === 0) {
+            card.style.display = 'none';
+            return;
+        }
+        card.style.display = '';
+
+        var latest = this.records[0]; // 记录按日期倒序，第一条是最近的
+        var lastDate = new Date(latest.date.replace(/-/g, '/'));
+        var today = new Date();
+        today.setHours(0, 0, 0, 0);
+        lastDate.setHours(0, 0, 0, 0);
+        var daysSince = Math.floor((today - lastDate) / (1000 * 60 * 60 * 24));
+
+        var html = '';
+        html += '<div class="inter-dialysis-row">';
+        html += '<span class="inter-dialysis-label">上次透析</span>';
+        html += '<span class="inter-dialysis-value">' + this.formatDate(latest.date) + '</span>';
+        html += '<span class="date-type-badge ' + latest.type + '">' + latest.type + '</span>';
+        html += '</div>';
+
+        if (daysSince === 0) {
+            html += '<div class="inter-dialysis-row highlight"><span class="inter-dialysis-icon">✅</span>今天已透析，注意控制饮水</div>';
+        } else if (daysSince === 1) {
+            html += '<div class="inter-dialysis-row">距上次透析 <strong>' + daysSince + '</strong> 天</div>';
+        } else if (daysSince <= 2) {
+            html += '<div class="inter-dialysis-row">距上次透析 <strong>' + daysSince + '</strong> 天，注意控制饮水</div>';
+        } else if (daysSince >= 3) {
+            // 超过3天预警
+            var warningGain = '';
+            if (this.dryWeight && latest.postWeight) {
+                // 估算：从上次透后体重到现在体重的增长（无法获取当前体重，只能提示理论值）
+                var safeGain = Math.round(this.dryWeight * 0.05 * 10) / 10;
+                warningGain = '（安全涨幅应控制在干体重的5%以内，即 <strong>' + safeGain + ' kg</strong> 以内）';
+            }
+            html += '<div class="inter-dialysis-row warning">距上次透析已 <strong>' + daysSince + '</strong> 天，请尽快安排透析' + warningGain + '</div>';
+        }
+
+        // 干体重显示
+        if (this.dryWeight) {
+            html += '<div class="inter-dialysis-row"><span class="inter-dialysis-label">干体重</span><span class="inter-dialysis-value">' + this.dryWeight + ' kg</span></div>';
+        }
+
+        card.innerHTML = html;
     },
 
     // 加载干体重
@@ -196,6 +300,16 @@ var RecordManager = {
         document.getElementById('clothesWeight').value = record.clothesWeight || '';
         document.getElementById('postWeight').value = record.postWeight || '';
         document.getElementById('fluidRemoved').value = record.fluidRemoved || '';
+
+        // 血压回填
+        document.getElementById('preBPSys').value = (record.preBP && record.preBP.sys) || '';
+        document.getElementById('preBPDia').value = (record.preBP && record.preBP.dia) || '';
+        document.getElementById('postBPSys').value = (record.postBP && record.postBP.sys) || '';
+        document.getElementById('postBPDia').value = (record.postBP && record.postBP.dia) || '';
+
+        // 症状回填
+        this.setSelectedSymptoms(record.symptoms || []);
+
         document.getElementById('notes').value = record.notes || '';
 
         // 更新涨水率提示（编辑时按当前表单值实时计算）
@@ -226,6 +340,7 @@ var RecordManager = {
         var form = document.getElementById('recordForm');
         form.reset();
         this.setDefaultDate();
+        this.clearSymptoms();
         var submitBtn = document.querySelector('#recordForm button[type="submit"]');
         submitBtn.textContent = '保存记录';
         document.getElementById('cancelEditBtn').classList.add('hidden');
@@ -313,6 +428,9 @@ var RecordManager = {
         }
 
         list.innerHTML = html;
+
+        // 同时刷新透析间期卡片
+        this.renderInterDialysisCard();
     },
 
     // 展开/折叠月份
@@ -348,7 +466,6 @@ var RecordManager = {
         var gainRate = (r.gainRate !== undefined && r.gainRate !== null) ? r.gainRate : null;
         if (gainRate === null && self.dryWeight) {
             gainRate = self.calcGainRate(r.preWeight, r.clothesWeight);
-            // 补存到记录中
             r.gainRate = gainRate;
             r.dryWeightAtSave = self.dryWeight;
             self.save();
@@ -361,6 +478,31 @@ var RecordManager = {
                 ? ' · 已扣衣服' + r.clothesWeight + 'kg'
                 : '';
             gainRateHtml = '<span class="gain-rate-tag ' + level + '">涨水率 ' + gainRate + '%（' + text + '）' + cwText + '</span>';
+        }
+
+        // 血压显示
+        var bpHtml = '';
+        if (r.preBP || r.postBP) {
+            bpHtml += '<div class="record-bp-row">';
+            if (r.preBP) {
+                var preLevel = self.bpLevel(r.preBP.sys, r.preBP.dia);
+                bpHtml += '<span class="bp-tag ' + (preLevel ? preLevel.level : '') + '">透前 ' + r.preBP.sys + '/' + r.preBP.dia + '</span>';
+            }
+            if (r.postBP) {
+                var postLevel = self.bpLevel(r.postBP.sys, r.postBP.dia);
+                bpHtml += '<span class="bp-tag ' + (postLevel ? postLevel.level : '') + '">透后 ' + r.postBP.sys + '/' + r.postBP.dia + '</span>';
+            }
+            bpHtml += '</div>';
+        }
+
+        // 症状显示
+        var symptomHtml = '';
+        if (r.symptoms && r.symptoms.length > 0) {
+            symptomHtml = '<div class="record-symptom-row">';
+            for (var si = 0; si < r.symptoms.length; si++) {
+                symptomHtml += '<span class="symptom-badge">' + self.escapeHtml(r.symptoms[si]) + '</span>';
+            }
+            symptomHtml += '</div>';
         }
 
         // 待补填标记
@@ -376,6 +518,7 @@ var RecordManager = {
                 pendingBadge +
             '</div>' +
             gainRateHtml +
+            bpHtml +
             '<div class="record-item-data">' +
                 '<div class="record-data-item">' +
                     '<span class="record-data-label">透前体重</span>' +
@@ -394,6 +537,7 @@ var RecordManager = {
                     '<span class="record-data-value">' + netDisplay + '</span>' +
                 '</div>' +
             '</div>' +
+            symptomHtml +
             (r.notes ? '<div class="record-item-notes">📝 ' + self.escapeHtml(r.notes) + '</div>' : '') +
         '</div>';
     },
@@ -417,6 +561,17 @@ var RecordManager = {
                 return;
             }
 
+            // 收集血压数据
+            var preBPSys = parseInt(document.getElementById('preBPSys').value) || 0;
+            var preBPDia = parseInt(document.getElementById('preBPDia').value) || 0;
+            var postBPSys = parseInt(document.getElementById('postBPSys').value) || 0;
+            var postBPDia = parseInt(document.getElementById('postBPDia').value) || 0;
+            var preBP = (preBPSys && preBPDia) ? { sys: preBPSys, dia: preBPDia } : null;
+            var postBP = (postBPSys && postBPDia) ? { sys: postBPSys, dia: postBPDia } : null;
+
+            // 收集症状
+            var symptoms = self.getSelectedSymptoms();
+
             if (self.editingId) {
                 // 编辑模式：更新记录
                 var record = {
@@ -427,9 +582,12 @@ var RecordManager = {
                     clothesWeight: parseFloat(document.getElementById('clothesWeight').value) || 0,
                     postWeight: postWeight,
                     fluidRemoved: fluidRemoved,
+                    preBP: preBP,
+                    postBP: postBP,
+                    symptoms: symptoms,
                     notes: document.getElementById('notes').value.trim(),
                     gainRate: self.calcGainRate(preWeight, parseFloat(document.getElementById('clothesWeight').value) || 0),
-                    dryWeightAtSave: self.dryWeight  // 记录当时的干体重
+                    dryWeightAtSave: self.dryWeight
                 };
                 self.update(self.editingId, record);
                 self.cancelEdit();
@@ -444,13 +602,17 @@ var RecordManager = {
                     clothesWeight: parseFloat(document.getElementById('clothesWeight').value) || 0,
                     postWeight: postWeight,
                     fluidRemoved: fluidRemoved,
+                    preBP: preBP,
+                    postBP: postBP,
+                    symptoms: symptoms,
                     notes: document.getElementById('notes').value.trim(),
                     gainRate: self.calcGainRate(preWeight, parseFloat(document.getElementById('clothesWeight').value) || 0),
-                    dryWeightAtSave: self.dryWeight  // 记录当时的干体重
+                    dryWeightAtSave: self.dryWeight
                 };
                 self.add(record);
                 form.reset();
                 self.setDefaultDate();
+                self.clearSymptoms();
                 App.showToast(postWeight ? '记录已保存' : '透前数据已保存，下机后记得补填');
             }
         });
@@ -500,6 +662,106 @@ var RecordManager = {
                 }, 300);
             });
         });
+
+        // 导出给医生
+        var exportBtn = document.getElementById('exportBtn');
+        if (exportBtn) {
+            exportBtn.addEventListener('click', function() {
+                self.exportData();
+            });
+        }
+    },
+
+    // 导出记录数据给医生
+    exportData() {
+        if (this.records.length === 0) {
+            App.showToast('暂无记录可导出');
+            return;
+        }
+
+        var self = this;
+        var lines = [];
+        lines.push('========== 透析记录摘要 ==========');
+        lines.push('生成时间：' + new Date().toLocaleString('zh-CN'));
+        if (self.dryWeight) {
+            lines.push('干体重：' + self.dryWeight + ' kg');
+        }
+        lines.push('记录总数：' + self.records.length + ' 条');
+        lines.push('');
+
+        // 导出最近30条（或全部如果少于30条）
+        var exportCount = Math.min(self.records.length, 30);
+        lines.push('--- 最近 ' + exportCount + ' 条记录 ---');
+        for (var i = 0; i < exportCount; i++) {
+            var r = self.records[i];
+            lines.push('');
+            lines.push('【' + self.formatDate(r.date) + '】 ' + (self.TYPE_MAP[r.type] || r.type));
+
+            // 体重
+            var parts = [];
+            parts.push('透前' + r.preWeight + 'kg');
+            if (r.postWeight) parts.push('透后' + r.postWeight + 'kg');
+            if (r.fluidRemoved) parts.push('减水' + r.fluidRemoved + 'mL');
+            if (r.clothesWeight && r.clothesWeight > 0) parts.push('衣服' + r.clothesWeight + 'kg');
+            lines.push('  体重：' + parts.join('，'));
+
+            // 涨水率
+            if (r.gainRate !== null && r.gainRate !== undefined) {
+                lines.push('  涨水率：' + r.gainRate + '%（' + self.gainRateText(r.gainRate) + '）');
+            }
+
+            // 血压
+            var bpParts = [];
+            if (r.preBP) bpParts.push('透前' + r.preBP.sys + '/' + r.preBP.dia);
+            if (r.postBP) bpParts.push('透后' + r.postBP.sys + '/' + r.postBP.dia);
+            if (bpParts.length > 0) lines.push('  血压：' + bpParts.join('，'));
+
+            // 症状
+            if (r.symptoms && r.symptoms.length > 0) {
+                lines.push('  症状：' + r.symptoms.join('、'));
+            }
+
+            // 备注
+            if (r.notes) {
+                lines.push('  备注：' + r.notes);
+            }
+        }
+
+        lines.push('');
+        lines.push('================================');
+
+        var text = lines.join('\n');
+
+        // 优先使用 Web Share API（手机端可直接分享到微信等）
+        if (navigator.share) {
+            navigator.share({
+                title: '透析记录摘要',
+                text: text
+            }).catch(function() {});
+        } else if (navigator.clipboard && navigator.clipboard.writeText) {
+            // 备选：复制到剪贴板
+            navigator.clipboard.writeText(text).then(function() {
+                App.showToast('已复制到剪贴板，可粘贴到微信发给医生');
+            }, function() {
+                // 最终备选：在新窗口打开
+                self.showExportModal(text);
+            });
+        } else {
+            self.showExportModal(text);
+        }
+    },
+
+    // 导出结果弹窗（不支持分享/剪贴板时的备选）
+    showExportModal(text) {
+        var modal = document.createElement('div');
+        modal.className = 'export-modal';
+        modal.innerHTML = '<div class="export-modal-content">' +
+            '<h3>透析记录摘要</h3>' +
+            '<p style="font-size:12px;color:var(--text-light);margin-bottom:8px">长按下方文字可复制</p>' +
+            '<pre class="export-text">' + this.escapeHtml(text) + '</pre>' +
+            '<button type="button" class="btn-primary" onclick="this.closest(\'.export-modal\').remove()">关闭</button>' +
+            '</div>';
+        document.body.appendChild(modal);
     },
 
     // 格式化日期

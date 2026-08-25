@@ -147,6 +147,7 @@ var StatsManager = {
     renderCharts() {
         this.renderWeightChart();
         this.renderFluidChart();
+        this.renderBPChart();
         this.renderTypeChart();
     },
 
@@ -281,6 +282,124 @@ var StatsManager = {
                         ticks: {
                             font: { size: 11 },
                             callback: function(value) { return value + ' mL'; }
+                        }
+                    },
+                    x: {
+                        ticks: { font: { size: 11 } }
+                    }
+                }
+            }
+        });
+    },
+
+    // 血压趋势图（当月）
+    renderBPChart() {
+        var records = this.getMonthRecords().slice().reverse(); // 按时间正序
+
+        var labels = records.map(function(r) {
+            var d = new Date(r.date.replace(/-/g, '/'));
+            return (d.getMonth() + 1) + '/' + d.getDate();
+        });
+
+        var preSys = records.map(function(r) { return (r.preBP && r.preBP.sys) || null; });
+        var preDia = records.map(function(r) { return (r.preBP && r.preBP.dia) || null; });
+        var postSys = records.map(function(r) { return (r.postBP && r.postBP.sys) || null; });
+        var postDia = records.map(function(r) { return (r.postBP && r.postBP.dia) || null; });
+
+        // 检查是否有任何血压数据
+        var hasBP = preSys.some(function(v) { return v !== null; }) || postSys.some(function(v) { return v !== null; });
+
+        var ctx = document.getElementById('bpChart').getContext('2d');
+
+        if (this.charts.bp) {
+            this.charts.bp.destroy();
+        }
+
+        if (!hasBP) {
+            this.charts.bp = new Chart(ctx, {
+                type: 'line',
+                data: { labels: ['暂无血压数据'], datasets: [] },
+                options: { responsive: true, maintainAspectRatio: false }
+            });
+            return;
+        }
+
+        this.charts.bp = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: '透前收缩压',
+                        data: preSys,
+                        borderColor: '#E53935',
+                        backgroundColor: 'rgba(229, 57, 53, 0.05)',
+                        fill: false,
+                        tension: 0.3,
+                        pointRadius: 4,
+                        pointBackgroundColor: '#E53935',
+                        spanGaps: true
+                    },
+                    {
+                        label: '透前舒张压',
+                        data: preDia,
+                        borderColor: '#FF8A80',
+                        backgroundColor: 'transparent',
+                        fill: false,
+                        tension: 0.3,
+                        pointRadius: 3,
+                        pointBackgroundColor: '#FF8A80',
+                        borderDash: [4, 3],
+                        spanGaps: true
+                    },
+                    {
+                        label: '透后收缩压',
+                        data: postSys,
+                        borderColor: '#1565C0',
+                        backgroundColor: 'rgba(21, 101, 192, 0.05)',
+                        fill: false,
+                        tension: 0.3,
+                        pointRadius: 4,
+                        pointBackgroundColor: '#1565C0',
+                        spanGaps: true
+                    },
+                    {
+                        label: '透后舒张压',
+                        data: postDia,
+                        borderColor: '#90CAF9',
+                        backgroundColor: 'transparent',
+                        fill: false,
+                        tension: 0.3,
+                        pointRadius: 3,
+                        pointBackgroundColor: '#90CAF9',
+                        borderDash: [4, 3],
+                        spanGaps: true
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: { font: { size: 10 }, padding: 8 }
+                    },
+                    annotation: {}
+                },
+                scales: {
+                    y: {
+                        suggestedMin: 50,
+                        suggestedMax: 200,
+                        ticks: {
+                            font: { size: 11 },
+                            callback: function(value) { return value + ' mmHg'; }
+                        },
+                        grid: {
+                            color: function(context) {
+                                // 140/90 高血压警戒线背景
+                                return null;
+                            }
                         }
                     },
                     x: {

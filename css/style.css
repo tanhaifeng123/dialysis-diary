@@ -1302,3 +1302,212 @@ body {
         display: none;
     }
 }
+
+/* ===== 血压输入框 ===== */
+.bp-input-group {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.bp-input-group input {
+    flex: 1;
+    padding: 14px 8px !important;
+    text-align: center;
+    font-size: 16px;
+}
+
+.bp-separator {
+    font-size: 18px;
+    color: var(--text-light);
+    flex-shrink: 0;
+    padding: 0 2px;
+}
+
+/* ===== 症状标签选择 ===== */
+.symptom-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.symptom-tag {
+    padding: 8px 14px;
+    border: 1.5px solid var(--border);
+    border-radius: 20px;
+    background: #FAFBFC;
+    font-size: 14px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.15s;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    -webkit-appearance: none;
+    appearance: none;
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+.symptom-tag:active {
+    transform: scale(0.96);
+}
+
+.symptom-tag.selected {
+    background: #FFF3E0;
+    border-color: var(--warning);
+    color: var(--warning);
+    font-weight: 500;
+}
+
+/* ===== 历史记录中的血压显示 ===== */
+.record-bp-row {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.bp-tag {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.bp-tag.normal {
+    background: #E8F5E9;
+    color: var(--success);
+}
+
+.bp-tag.warning {
+    background: #FFF8E1;
+    color: var(--warning);
+}
+
+.bp-tag.danger {
+    background: #FFEBEE;
+    color: var(--danger);
+}
+
+/* ===== 历史记录中的症状显示 ===== */
+.record-symptom-row {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.symptom-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    background: #FCE4EC;
+    color: #C62828;
+    border-radius: 4px;
+    font-size: 12px;
+}
+
+/* ===== 透析间期提醒卡片 ===== */
+.inter-dialysis-card {
+    background: linear-gradient(135deg, #E3F2FD, #E8EAF6);
+}
+
+.inter-dialysis-card:empty {
+    display: none;
+}
+
+.inter-dialysis-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 0;
+    font-size: 14px;
+    color: var(--text);
+}
+
+.inter-dialysis-row.highlight {
+    color: var(--success);
+    font-weight: 500;
+}
+
+.inter-dialysis-row.warning {
+    color: var(--danger);
+    font-weight: 500;
+}
+
+.inter-dialysis-label {
+    color: var(--text-light);
+    font-size: 13px;
+    min-width: 64px;
+}
+
+.inter-dialysis-value {
+    font-weight: 500;
+}
+
+/* ===== 导出按钮 ===== */
+.btn-export {
+    background: #E8EAF6;
+    color: var(--primary);
+    border: 1px solid var(--primary-light);
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    white-space: nowrap;
+}
+
+.btn-export:active {
+    transform: scale(0.96);
+    background: #C5CAE9;
+}
+
+/* ===== 导出弹窗 ===== */
+.export-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+}
+
+.export-modal-content {
+    background: #fff;
+    border-radius: var(--radius);
+    padding: 20px;
+    max-width: 500px;
+    width: 100%;
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+.export-modal-content h3 {
+    margin-bottom: 8px;
+    color: var(--primary);
+}
+
+.export-text {
+    background: #F5F7FA;
+    padding: 12px;
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    line-height: 1.6;
+    white-space: pre-wrap;
+    word-break: break-all;
+    margin-bottom: 12px;
+    max-height: 50vh;
+    overflow-y: auto;
+    font-family: -apple-system, "PingFang SC", "Microsoft YaHei", monospace;
+}
+
+/* ===== 历史记录卡片头部按钮布局 ===== */
+.card-header-row .btn-export {
+    margin-left: auto;
+}
