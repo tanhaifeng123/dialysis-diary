@@ -1191,8 +1191,21 @@ body {
     margin-bottom: 14px;
     border: 1px solid var(--border);
     border-radius: var(--radius-sm);
-    overflow: hidden;
+    /* 注意：不能设置 overflow:hidden，否则月份头的吸顶(sticky)会失效 */
     background: #fff;
+}
+
+/* 展开时：月份头顶部圆角、内容底部圆角；折叠时：月份头全圆角 */
+.month-group.expanded .month-group-header {
+    border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+}
+
+.month-group:not(.expanded) .month-group-header {
+    border-radius: var(--radius-sm);
+}
+
+.month-group.expanded .month-group-body {
+    border-radius: 0 0 var(--radius-sm) var(--radius-sm);
 }
 
 .month-group-header {
@@ -1205,6 +1218,11 @@ body {
     -webkit-tap-highlight-color: transparent;
     touch-action: manipulation;
     min-height: 44px;
+    /* 吸顶：上滑后月份折叠按钮始终停留在屏幕顶部（标题栏下方），随时可点击折叠 */
+    position: sticky;
+    top: var(--sticky-offset, 57px);
+    z-index: 10;
+    box-shadow: 0 1px 0 var(--border);
 }
 
 .month-group-header:active {
