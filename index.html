@@ -168,7 +168,85 @@
             </div>
         </section>
 
-        <!-- Tab 3: 钾/磷含量食物 -->
+        <!-- Tab 3: 化验指标 -->
+        <section id="tab-metrics" class="tab-page">
+            <!-- 新增检查表单 -->
+            <div class="card">
+                <h2 class="card-title" id="metricFormTitle">记录检查指标</h2>
+                <p class="metric-hint">定期复查后录入，各项均选填，有什么填什么，方便对比变化</p>
+                <form id="metricForm" class="metric-form">
+                    <div class="form-row">
+                        <label for="metricDate">检查日期</label>
+                        <input type="date" id="metricDate" required inputmode="none">
+                    </div>
+                    <p class="metric-group-label">贫血 / 营养</p>
+                    <div class="metric-input-grid">
+                        <div class="metric-field">
+                            <label for="metric_hb">血红蛋白 <small>g/L</small></label>
+                            <input type="number" id="metric_hb" step="1" min="20" max="300" placeholder="目标 110-130" inputmode="decimal" enterkeyhint="next">
+                        </div>
+                        <div class="metric-field">
+                            <label for="metric_alb">白蛋白 <small>g/L</small></label>
+                            <input type="number" id="metric_alb" step="0.1" min="10" max="70" placeholder="目标 ≥40" inputmode="decimal" enterkeyhint="next">
+                        </div>
+                    </div>
+                    <p class="metric-group-label">电解质</p>
+                    <div class="metric-input-grid">
+                        <div class="metric-field">
+                            <label for="metric_k">血钾 <small>mmol/L</small></label>
+                            <input type="number" id="metric_k" step="0.1" min="1" max="10" placeholder="目标 3.5-5.3" inputmode="decimal" enterkeyhint="next">
+                        </div>
+                        <div class="metric-field">
+                            <label for="metric_na">血钠 <small>mmol/L</small></label>
+                            <input type="number" id="metric_na" step="1" min="100" max="180" placeholder="目标 135-145" inputmode="decimal" enterkeyhint="next">
+                        </div>
+                        <div class="metric-field">
+                            <label for="metric_cl">血氯 <small>mmol/L</small></label>
+                            <input type="number" id="metric_cl" step="1" min="70" max="140" placeholder="目标 95-108" inputmode="decimal" enterkeyhint="next">
+                        </div>
+                        <div class="metric-field">
+                            <label for="metric_ca">血钙 <small>mmol/L</small></label>
+                            <input type="number" id="metric_ca" step="0.01" min="1" max="5" placeholder="目标 2.1-2.5" inputmode="decimal" enterkeyhint="next">
+                        </div>
+                        <div class="metric-field">
+                            <label for="metric_p">血磷 <small>mmol/L</small></label>
+                            <input type="number" id="metric_p" step="0.01" min="0.3" max="5" placeholder="目标 1.13-1.78" inputmode="decimal" enterkeyhint="next">
+                        </div>
+                        <div class="metric-field">
+                            <label for="metric_hco3">碳酸氢根 <small>mmol/L</small></label>
+                            <input type="number" id="metric_hco3" step="0.1" min="5" max="45" placeholder="目标 22-28" inputmode="decimal" enterkeyhint="next">
+                        </div>
+                    </div>
+                    <p class="metric-group-label">骨代谢</p>
+                    <div class="metric-input-grid">
+                        <div class="metric-field">
+                            <label for="metric_pth">甲状旁腺激素 PTH <small>pg/mL</small></label>
+                            <input type="number" id="metric_pth" step="1" min="5" max="3000" placeholder="目标 150-300" inputmode="decimal" enterkeyhint="done">
+                        </div>
+                    </div>
+                    <button type="submit" class="btn-primary">保存指标</button>
+                    <button type="button" id="cancelMetricEditBtn" class="btn-cancel hidden">取消编辑</button>
+                </form>
+            </div>
+
+            <!-- 指标记录表格 -->
+            <div class="card">
+                <div class="card-header-row">
+                    <h2 class="card-title">检查记录</h2>
+                    <span id="metricCount" class="badge">0 条</span>
+                </div>
+                <div class="metric-table-wrap">
+                    <table class="metric-table" id="metricTable">
+                        <thead></thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+                <p class="metric-legend">🔴 偏高于目标范围　🟠 低于目标范围　↑↓ 相对上次检查的变化</p>
+                <p class="food-source">目标范围参考 KDOQI 指南及中国肾性贫血/CKD-MBD 诊疗指南（透析患者），仅供自我监测参考，具体以医生解读为准</p>
+            </div>
+        </section>
+
+        <!-- Tab 4: 钾/磷含量食物 -->
         <section id="tab-foods" class="tab-page">
             <div class="card">
                 <!-- 矿物质/营养素切换：钾 / 磷 / 优质蛋白 -->
@@ -236,6 +314,12 @@
             </svg>
             <span>统计</span>
         </button>
+        <button class="nav-btn" data-tab="metrics">
+            <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
+                <path d="M13 11.33 18 18H6l5-6.67V6h2m3.96-4H7.04c-.42 0-.65.48-.39.81L9 6v4.67L3.2 18.4c-.49.66-.02 1.6.8 1.6h16c.82 0 1.29-.94.8-1.6L15 10.67V6l2.35-3.19c.26-.33.03-.81-.39-.81z"/>
+            </svg>
+            <span>指标</span>
+        </button>
         <button class="nav-btn" data-tab="foods">
             <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
                 <path d="M11 9H9V2H7v7H5V2H3v7c0 2.12 1.66 3.84 3.75 3.97V22h2.5v-9.03C11.34 12.84 13 11.12 13 9V2h-2v7zm5-3v8h2.5v8H21V2c-2.76 0-5 2.24-5 4z"/>
@@ -256,6 +340,7 @@
     <script src="js/foods.js" defer></script>
     <script src="js/foods-extra.js" defer></script>
     <script src="js/tasks.js" defer></script>
+    <script src="js/metrics.js" defer></script>
     <script src="js/records.js" defer></script>
     <script src="js/stats.js" defer></script>
     <script src="js/app.js" defer></script>

@@ -45,6 +45,7 @@ var App = {
         RecordManager.init();
         TaskManager.init();
         StatsManager.init();
+        MetricsManager.init();
 
         // 初始渲染食物
         this.renderFoods('low');

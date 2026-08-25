@@ -1422,3 +1422,169 @@ body {
 .card-header-row .btn-export {
     margin-left: auto;
 }
+
+/* ===== 化验指标页 ===== */
+.metric-hint {
+    font-size: 13px;
+    color: var(--text-light);
+    margin-bottom: 12px;
+}
+
+.metric-group-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--primary);
+    margin: 14px 0 8px;
+    padding-left: 8px;
+    border-left: 3px solid var(--primary);
+}
+
+.metric-input-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+.metric-field label {
+    display: block;
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-bottom: 5px;
+}
+
+.metric-field label small {
+    color: var(--text-light);
+    font-weight: 400;
+}
+
+.metric-field input {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 12px 10px;
+    border: 1px solid #E0E0E0;
+    border-radius: var(--radius-sm);
+    font-size: 16px;
+    background: #FAFBFC;
+    transition: border-color 0.2s;
+}
+
+.metric-field input:focus {
+    outline: none;
+    border-color: var(--primary);
+    background: #fff;
+}
+
+/* 指标表格：横向滚动 + 首列吸顶 */
+.metric-table-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin: 0 -4px;
+    padding: 0 4px;
+}
+
+.metric-table {
+    width: 100%;
+    min-width: 680px;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+
+.metric-table th,
+.metric-table td {
+    padding: 9px 10px;
+    text-align: center;
+    white-space: nowrap;
+    border-bottom: 1px solid #EEF1F5;
+}
+
+.metric-table thead th {
+    position: sticky;
+    top: 0;
+    background: #F5F8FC;
+    color: var(--text-secondary);
+    font-weight: 600;
+    font-size: 12px;
+    padding: 8px 10px;
+    vertical-align: bottom;
+}
+
+.metric-table thead th small {
+    display: block;
+    font-size: 10px;
+    font-weight: 400;
+    color: var(--text-light);
+    margin-top: 2px;
+}
+
+/* 首列（日期）滚动时吸在左侧 */
+.metric-table .metric-date-col {
+    position: sticky;
+    left: 0;
+    background: var(--card-bg);
+    z-index: 1;
+    text-align: left;
+    font-weight: 600;
+    color: var(--text);
+}
+
+.metric-table thead .metric-date-col {
+    background: #F5F8FC;
+    z-index: 2;
+}
+
+.metric-val.val-high {
+    color: var(--danger);
+    font-weight: 600;
+}
+
+.metric-val.val-low {
+    color: #E65100;
+    font-weight: 600;
+}
+
+.metric-trend {
+    font-size: 10px;
+    margin-left: 1px;
+}
+
+.metric-trend.up {
+    color: var(--danger);
+}
+
+.metric-trend.down {
+    color: #1565C0;
+}
+
+.metric-op {
+    display: flex;
+    gap: 6px;
+    justify-content: center;
+}
+
+.metric-op-btn {
+    border: none;
+    background: none;
+    font-size: 15px;
+    padding: 4px 6px;
+    cursor: pointer;
+    border-radius: 6px;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.metric-op-btn:active {
+    background: #F0F4F8;
+}
+
+.metric-empty {
+    text-align: center;
+    color: var(--text-light);
+    font-size: 14px;
+    padding: 24px 12px !important;
+}
+
+.metric-legend {
+    font-size: 12px;
+    color: var(--text-light);
+    margin-top: 10px;
+}
+
