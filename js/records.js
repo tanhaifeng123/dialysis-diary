@@ -361,9 +361,6 @@ var RecordManager = {
         }
 
         list.innerHTML = html;
-
-        // 同时刷新透析间期卡片
-        this.renderInterDialysisCard();
     },
 
     // 展开/折叠月份
