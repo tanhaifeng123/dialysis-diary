@@ -11,10 +11,8 @@ var MetricsManager = {
         { key: 'alb',  name: '白蛋白',  short: 'Alb',  unit: 'g/L',    min: 40,   max: null },
         { key: 'k',    name: '血钾',    short: 'K',    unit: 'mmol/L', min: 3.5,  max: 5.3 },
         { key: 'na',   name: '血钠',    short: 'Na',   unit: 'mmol/L', min: 135,  max: 145 },
-        { key: 'cl',   name: '血氯',    short: 'Cl',   unit: 'mmol/L', min: 95,   max: 108 },
         { key: 'ca',   name: '血钙',    short: 'Ca',   unit: 'mmol/L', min: 2.1,  max: 2.5 },
         { key: 'p',    name: '血磷',    short: 'P',    unit: 'mmol/L', min: 1.13, max: 1.78 },
-        { key: 'hco3', name: '碳酸氢根', short: 'HCO3', unit: 'mmol/L', min: 22,   max: 28 },
         { key: 'pth',  name: '甲状旁腺激素', short: 'PTH', unit: 'pg/mL', min: 150, max: 300 }
     ],
 
@@ -230,7 +228,7 @@ var MetricsManager = {
         thead.innerHTML = html;
 
         if (records.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="11" class="metric-empty">暂无检查记录，复查后在上方录入即可跟踪变化</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="9" class="metric-empty">暂无检查记录，复查后在上方录入即可跟踪变化</td></tr>';
             return;
         }
 
