@@ -183,22 +183,22 @@
                     <div class="metric-input-grid">
                         <div class="metric-field">
                             <label for="metric_hb">血红蛋白 <small>g/L</small></label>
-                            <input type="number" id="metric_hb" step="1" min="20" max="300" placeholder="目标 110-130" inputmode="decimal" enterkeyhint="next">
+                            <input type="number" id="metric_hb" step="0.01" min="20" max="300" placeholder="目标 110-130" inputmode="decimal" enterkeyhint="next">
                         </div>
                         <div class="metric-field">
                             <label for="metric_alb">白蛋白 <small>g/L</small></label>
-                            <input type="number" id="metric_alb" step="0.1" min="10" max="70" placeholder="目标 ≥40" inputmode="decimal" enterkeyhint="next">
+                            <input type="number" id="metric_alb" step="0.01" min="10" max="70" placeholder="目标 ≥40" inputmode="decimal" enterkeyhint="next">
                         </div>
                     </div>
                     <p class="metric-group-label">电解质</p>
                     <div class="metric-input-grid">
                         <div class="metric-field">
                             <label for="metric_k">血钾 <small>mmol/L</small></label>
-                            <input type="number" id="metric_k" step="0.1" min="1" max="10" placeholder="目标 3.5-5.3" inputmode="decimal" enterkeyhint="next">
+                            <input type="number" id="metric_k" step="0.01" min="1" max="10" placeholder="目标 3.5-5.3" inputmode="decimal" enterkeyhint="next">
                         </div>
                         <div class="metric-field">
                             <label for="metric_na">血钠 <small>mmol/L</small></label>
-                            <input type="number" id="metric_na" step="0.1" min="100" max="180" placeholder="目标 135-145" inputmode="decimal" enterkeyhint="next">
+                            <input type="number" id="metric_na" step="0.01" min="100" max="180" placeholder="目标 135-145" inputmode="decimal" enterkeyhint="next">
                         </div>
                         <div class="metric-field">
                             <label for="metric_ca">血钙 <small>mmol/L</small></label>
@@ -213,7 +213,7 @@
                     <div class="metric-input-grid">
                         <div class="metric-field">
                             <label for="metric_pth">甲状旁腺激素 PTH <small>pg/mL</small></label>
-                            <input type="number" id="metric_pth" step="1" min="5" max="3000" placeholder="目标 150-300" inputmode="decimal" enterkeyhint="done">
+                            <input type="number" id="metric_pth" step="0.01" min="5" max="3000" placeholder="目标 150-300" inputmode="decimal" enterkeyhint="done">
                         </div>
                     </div>
                     <button type="submit" class="btn-primary">保存指标</button>
