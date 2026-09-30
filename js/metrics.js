@@ -22,6 +22,7 @@ var MetricsManager = {
         this.setDefaultDate();
         this.render();
         this.bindEvents();
+        this.bindDecimalLimit();
     },
 
     // 从 localStorage 加载
@@ -60,13 +61,20 @@ var MetricsManager = {
         }
     },
 
-    // 收集表单中的指标值（空 = null）
+    // 保留两位小数（四舍五入）
+    round2(v) {
+        if (v === null || v === undefined || isNaN(v)) return null;
+        return Math.round(v * 100) / 100;
+    },
+
+    // 收集表单中的指标值（空 = null，统一保留两位小数）
     collectMetrics() {
+        var self = this;
         var data = {};
         this.METRIC_DEFS.forEach(function(def) {
             var raw = document.getElementById('metric_' + def.key).value;
             var v = parseFloat(raw);
-            data[def.key] = (raw !== '' && !isNaN(v)) ? v : null;
+            data[def.key] = (raw !== '' && !isNaN(v)) ? self.round2(v) : null;
         });
         return data;
     },
@@ -189,6 +197,28 @@ var MetricsManager = {
     fmtVal(v) {
         if (v === null || v === undefined) return '—';
         return (Math.round(v * 100) / 100).toString();
+    },
+
+    // 输入框实时限制：最多两位小数
+    bindDecimalLimit() {
+        this.METRIC_DEFS.forEach(function(def) {
+            var el = document.getElementById('metric_' + def.key);
+            if (!el) return;
+            el.addEventListener('input', function() {
+                var val = el.value;
+                if (val === '' || val === '-') return;
+                // 只保留数字和一个小数点，小数位超过两位则截断
+                var m = val.match(/^(\d*)(?:\.(\d*))?$/);
+                if (!m) {
+                    el.value = val.replace(/[^\d.]/g, '');
+                    return;
+                }
+                var intPart = m[1] || '0';
+                if (m[2] !== undefined && m[2].length > 2) {
+                    el.value = intPart + '.' + m[2].slice(0, 2);
+                }
+            });
+        });
     },
 
     // 日期显示：同年只显示月-日，跨年显示完整
