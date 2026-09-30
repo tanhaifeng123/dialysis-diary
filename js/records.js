@@ -88,6 +88,7 @@ var RecordManager = {
         this.renderDryWeight();
         this.render();  // 重新渲染记录列表（历史记录涨水率不变，只更新表单提示）
         this.updateGainRateHint();  // 更新表单中的涨水率提示
+        this.collapseDryWeight();   // 保存后收起，让历史记录回到视野
         App.showToast('干体重已保存，后续新记录将使用新干体重');
     },
 
@@ -109,6 +110,7 @@ var RecordManager = {
     editDryWeight() {
         var inputRow = document.querySelector('.dry-weight-row');
         var display = document.getElementById('dryWeightDisplay');
+        this.expandDryWeight();  // 确保折叠卡片已展开
         inputRow.classList.remove('hidden');
         display.classList.add('hidden');
         var input = document.getElementById('dryWeight');
@@ -227,6 +229,72 @@ var RecordManager = {
         App.showToast('记录已删除');
     },
 
+    // ===== 新增记录表单：展开 / 收起 =====
+    expandForm() {
+        var card = document.getElementById('recordFormCard');
+        var body = document.getElementById('recordFormBody');
+        var icon = document.getElementById('recordFormIcon');
+        var tip = document.getElementById('recordFormTip');
+        if (card) card.classList.remove('collapsed');
+        if (body) body.style.display = 'block';
+        if (icon) icon.textContent = '▼';
+        if (tip) tip.style.display = 'none';
+    },
+
+    collapseForm() {
+        var card = document.getElementById('recordFormCard');
+        var body = document.getElementById('recordFormBody');
+        var icon = document.getElementById('recordFormIcon');
+        var tip = document.getElementById('recordFormTip');
+        if (card) card.classList.add('collapsed');
+        if (body) body.style.display = 'none';
+        if (icon) icon.textContent = '▶';
+        if (tip) tip.style.display = '';
+    },
+
+    toggleForm() {
+        var body = document.getElementById('recordFormBody');
+        if (!body) return;
+        if (body.style.display === 'none') {
+            this.expandForm();
+        } else {
+            this.collapseForm();
+        }
+    },
+
+    // ===== 干体重设置：展开 / 收起 =====
+    expandDryWeight() {
+        var card = document.getElementById('dryWeightCard');
+        var body = document.getElementById('dryWeightBody');
+        var icon = document.getElementById('dryWeightIcon');
+        var tip = document.getElementById('dryWeightTip');
+        if (card) card.classList.remove('collapsed');
+        if (body) body.style.display = 'block';
+        if (icon) icon.textContent = '▼';
+        if (tip) tip.style.display = 'none';
+    },
+
+    collapseDryWeight() {
+        var card = document.getElementById('dryWeightCard');
+        var body = document.getElementById('dryWeightBody');
+        var icon = document.getElementById('dryWeightIcon');
+        var tip = document.getElementById('dryWeightTip');
+        if (card) card.classList.add('collapsed');
+        if (body) body.style.display = 'none';
+        if (icon) icon.textContent = '▶';
+        if (tip) tip.style.display = '';
+    },
+
+    toggleDryWeight() {
+        var body = document.getElementById('dryWeightBody');
+        if (!body) return;
+        if (body.style.display === 'none') {
+            this.expandDryWeight();
+        } else {
+            this.collapseDryWeight();
+        }
+    },
+
     // 进入编辑模式：把记录数据填入表单
     edit(id) {
         var record = this.records.find(function(r) { return r.id === id; });
@@ -261,8 +329,13 @@ var RecordManager = {
         submitBtn.textContent = '更新记录';
         document.getElementById('cancelEditBtn').classList.remove('hidden');
 
+        // 编辑时自动展开表单
+        this.expandForm();
+        document.getElementById('formTitle').innerHTML =
+            '<span class="collapse-icon" id="recordFormIcon">▼</span>编辑透析记录';
+
         // 滚动到表单顶部
-        document.querySelector('.app-header').scrollIntoView({ behavior: 'smooth' });
+        document.getElementById('recordFormCard').scrollIntoView({ behavior: 'smooth', block: 'start' });
 
         App.showToast('正在编辑，修改后点击更新');
     },
@@ -277,6 +350,11 @@ var RecordManager = {
         var submitBtn = document.querySelector('#recordForm button[type="submit"]');
         submitBtn.textContent = '保存记录';
         document.getElementById('cancelEditBtn').classList.add('hidden');
+        // 恢复标题并收起表单
+        document.getElementById('formTitle').innerHTML =
+            '<span class="collapse-icon" id="recordFormIcon">▶</span>新增透析记录' +
+            '<small class="collapse-tip" id="recordFormTip">点击展开录入</small>';
+        this.collapseForm();
     },
 
     // 设置默认日期为今天
@@ -515,6 +593,8 @@ var RecordManager = {
                 form.reset();
                 self.setDefaultDate();
                 self.clearSymptoms();
+                // 保存后收起表单，让历史记录回到视野
+                self.collapseForm();
                 App.showToast(postWeight ? '记录已保存' : '透前数据已保存，下机后记得补填');
             }
         });
