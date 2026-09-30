@@ -1424,6 +1424,60 @@ body {
 }
 
 /* ===== 化验指标页 ===== */
+
+/* 表单卡片：折叠态更紧凑 */
+.metric-form-card {
+    padding-bottom: 14px;
+}
+
+.metric-form-card.collapsed {
+    padding-bottom: 0;
+}
+
+.metric-form-toggle {
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 0 !important;
+    padding: 4px 0;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.metric-form-card:not(.collapsed) .metric-form-toggle {
+    margin-bottom: 10px !important;
+}
+
+.metric-toggle-icon {
+    display: inline-block;
+    font-size: 11px;
+    color: var(--primary);
+    transition: transform 0.2s;
+    flex: 0 0 auto;
+}
+
+.metric-toggle-tip {
+    margin-left: auto;
+    font-size: 12px;
+    font-weight: 400;
+    color: var(--text-light);
+}
+
+.metric-form-card:not(.collapsed) .metric-toggle-tip {
+    display: none;
+}
+
+/* 表格卡片：作为页面主区域，给足高度 */
+.metric-table-card {
+    min-height: calc(100vh - 220px);
+}
+
+.metric-table-wrap {
+    max-height: none;
+}
+
 .metric-hint {
     font-size: 13px;
     color: var(--text-light);
