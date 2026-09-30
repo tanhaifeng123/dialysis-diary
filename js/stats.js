@@ -14,6 +14,14 @@ var StatsManager = {
         'PD': '#AB47BC'
     },
 
+    // 减水量趋势图中，特殊透析类型的高亮配色（HD 保持默认蓝色，不在此表内）
+    SPECIAL_TYPE_COLORS: {
+        'HP':   'rgba(251, 140, 0, 0.85)',   // 血液灌流 - 橙色
+        'HDF':  'rgba(0, 191, 166, 0.85)',   // 透析滤过 - 青绿
+        'HFHD': 'rgba(92, 107, 192, 0.85)',  // 高通量 - 靛蓝
+        'PD':   'rgba(171, 71, 188, 0.85)'   // 腹膜透析 - 紫色
+    },
+
     // 初始化
     init() {
         // 默认当前月
@@ -238,6 +246,15 @@ var StatsManager = {
 
         var fluids = records.map(function(r) { return r.fluidRemoved || 0; });
 
+        // 按透析类型给柱子上色：灌流/血滤等特殊类型用独立颜色
+        var self = this;
+        var fluidColors = records.map(function(r) {
+            return self.SPECIAL_TYPE_COLORS[r.type] || 'rgba(25, 118, 210, 0.6)';
+        });
+        var fluidBorders = records.map(function(r) {
+            return self.SPECIAL_TYPE_COLORS[r.type] ? self.SPECIAL_TYPE_COLORS[r.type].replace(/[\d.]+\)$/, '1)') : '#1976D2';
+        });
+
         var ctx = document.getElementById('fluidChart').getContext('2d');
 
         if (this.charts.fluid) {
@@ -253,6 +270,30 @@ var StatsManager = {
             return;
         }
 
+        // 仅列出当月实际出现的特殊类型，生成图例说明
+        var usedSpecial = [];
+        records.forEach(function(r) {
+            if (self.SPECIAL_TYPE_COLORS[r.type] && usedSpecial.indexOf(r.type) === -1) {
+                usedSpecial.push(r.type);
+            }
+        });
+        var typeNote = document.getElementById('fluidChartNote');
+        if (typeNote) {
+            if (usedSpecial.length > 0) {
+                var noteHtml = '颜色说明：';
+                usedSpecial.forEach(function(t) {
+                    noteHtml += '<span class="fluid-legend-item">' +
+                        '<i style="background:' + self.SPECIAL_TYPE_COLORS[t] + '"></i>' +
+                        (RecordManager.TYPE_MAP[t] || t) + '</span>';
+                });
+                typeNote.innerHTML = noteHtml;
+                typeNote.classList.remove('hidden');
+            } else {
+                typeNote.innerHTML = '';
+                typeNote.classList.add('hidden');
+            }
+        }
+
         this.charts.fluid = new Chart(ctx, {
             type: 'bar',
             data: {
@@ -260,8 +301,8 @@ var StatsManager = {
                 datasets: [{
                     label: '减水量 (mL)',
                     data: fluids,
-                    backgroundColor: 'rgba(25, 118, 210, 0.6)',
-                    borderColor: '#1976D2',
+                    backgroundColor: fluidColors,
+                    borderColor: fluidBorders,
                     borderWidth: 1,
                     borderRadius: 4
                 }]
@@ -270,9 +311,18 @@ var StatsManager = {
                 responsive: true,
                 maintainAspectRatio: false,
                 plugins: {
-                    legend: {
-                        position: 'bottom',
-                        labels: { font: { size: 11 }, padding: 12 }
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                var r = records[context.dataIndex];
+                                var typeName = RecordManager.TYPE_MAP[r.type] || r.type;
+                                return [
+                                    '减水量：' + context.parsed.y + ' mL',
+                                    '透析类型：' + typeName
+                                ];
+                            }
+                        }
                     }
                 },
                 scales: {
