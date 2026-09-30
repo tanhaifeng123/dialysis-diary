@@ -27,14 +27,20 @@
 
         <!-- Tab 1: 透析记录 -->
         <section id="tab-records" class="tab-page active">
-            <!-- 干体重设置（只需设置一次） -->
-            <div class="card dry-weight-card">
-                <h2 class="card-title">干体重设置</h2>
-                <p class="dry-weight-hint">干体重只需设置一次，后续自动带出用于计算涨水率</p>
-                <div class="dry-weight-row">
-                    <input type="number" id="dryWeight" step="0.1" min="20" max="200" placeholder="如: 60.0" inputmode="decimal">
-                    <span class="dry-weight-unit">kg</span>
-                    <button type="button" id="saveDryWeightBtn" class="btn-primary">保存</button>
+            <!-- 干体重设置（默认折叠） -->
+            <div class="card dry-weight-card collapsed" id="dryWeightCard">
+                <h2 class="card-title collapse-toggle" id="dryWeightTitle" onclick="RecordManager.toggleDryWeight()">
+                    <span class="collapse-icon" id="dryWeightIcon">▶</span>
+                    干体重设置
+                    <small class="collapse-tip" id="dryWeightTip">点击展开</small>
+                </h2>
+                <div class="collapse-body" id="dryWeightBody" style="display:none">
+                    <p class="dry-weight-hint">干体重只需设置一次，后续自动带出用于计算涨水率</p>
+                    <div class="dry-weight-row">
+                        <input type="number" id="dryWeight" step="0.1" min="20" max="200" placeholder="如: 60.0" inputmode="decimal">
+                        <span class="dry-weight-unit">kg</span>
+                        <button type="button" id="saveDryWeightBtn" class="btn-primary">保存</button>
+                    </div>
                 </div>
                 <div id="dryWeightDisplay" class="dry-weight-display hidden">
                     <span>当前干体重</span>
@@ -43,68 +49,74 @@
                 </div>
             </div>
 
-            <!-- 新增记录表单 -->
-            <div class="card">
-                <h2 class="card-title" id="formTitle">新增透析记录</h2>
-                <form id="recordForm" class="record-form">
-                    <div class="form-row">
-                        <label for="recordDate">日期</label>
-                        <input type="date" id="recordDate" required inputmode="none">
-                    </div>
-                    <div class="form-row">
-                        <label for="dialysisType">透析类型</label>
-                        <select id="dialysisType" required>
-                            <option value="HD">HD（血液透析）</option>
-                            <option value="HDF">HDF（血液透析滤过）</option>
-                            <option value="HP">HP（血液灌流）</option>
-                            <option value="HFHD">HFHD（高通量透析）</option>
-                            <option value="PD">PD（腹膜透析）</option>
-                        </select>
-                    </div>
-                    <div class="form-row">
-                        <label for="preWeight">透前体重 (kg)</label>
-                        <input type="number" id="preWeight" step="0.1" min="20" max="200" placeholder="如: 65.5" required inputmode="decimal" enterkeyhint="next">
-                        <span id="gainRateHint" class="gain-rate-hint"></span>
-                    </div>
-                    <div class="form-row">
-                        <label for="clothesWeight">衣服重量 (kg) <small style="font-weight:400;color:var(--text-light)">选填，用于扣除计算涨水率</small></label>
-                        <input type="number" id="clothesWeight" step="0.1" min="0" max="20" placeholder="如: 1.5" inputmode="decimal" enterkeyhint="next">
-                    </div>
-                    <div class="form-row">
-                        <label for="postWeight">透后体重 (kg) <small style="font-weight:400;color:var(--text-light)">选填，下机后补填</small></label>
-                        <input type="number" id="postWeight" step="0.1" min="20" max="200" placeholder="下机后填写" inputmode="decimal" enterkeyhint="next">
-                    </div>
-                    <div class="form-row">
-                        <label for="fluidRemoved">减水量 (mL) <small style="font-weight:400;color:var(--text-light)">选填，下机后补填</small></label>
-                        <input type="number" id="fluidRemoved" step="50" min="0" max="5000" placeholder="下机后填写" inputmode="numeric" enterkeyhint="next">
-                    </div>
-                    <div class="form-row">
-                        <label>透析症状 <small style="font-weight:400;color:var(--text-light)">选填，点击选择</small></label>
-                        <div class="symptom-tags" id="symptomTags">
-                            <button type="button" class="symptom-tag" data-symptom="抽筋">抽筋</button>
-                            <button type="button" class="symptom-tag" data-symptom="皮肤瘙痒">皮肤瘙痒</button>
-                            <button type="button" class="symptom-tag" data-symptom="头晕">头晕</button>
-                            <button type="button" class="symptom-tag" data-symptom="恶心呕吐">恶心呕吐</button>
-                            <button type="button" class="symptom-tag" data-symptom="胸闷">胸闷</button>
-                            <button type="button" class="symptom-tag" data-symptom="头痛">头痛</button>
-                            <button type="button" class="symptom-tag" data-symptom="乏力">乏力</button>
-                            <button type="button" class="symptom-tag" data-symptom="气短">气短</button>
-                            <button type="button" class="symptom-tag" data-symptom="低血压">低血压</button>
-                            <button type="button" class="symptom-tag" data-symptom="高血压">高血压</button>
+            <!-- 新增记录表单（默认折叠） -->
+            <div class="card form-collapse-card collapsed" id="recordFormCard">
+                <h2 class="card-title collapse-toggle" id="formTitle" onclick="RecordManager.toggleForm()">
+                    <span class="collapse-icon" id="recordFormIcon">▶</span>
+                    新增透析记录
+                    <small class="collapse-tip" id="recordFormTip">点击展开录入</small>
+                </h2>
+                <div class="collapse-body" id="recordFormBody" style="display:none">
+                    <form id="recordForm" class="record-form">
+                        <div class="form-row">
+                            <label for="recordDate">日期</label>
+                            <input type="date" id="recordDate" required inputmode="none">
                         </div>
-                    </div>
-                    <div class="form-row">
-                        <label for="notes">备注</label>
-                        <textarea id="notes" rows="2" placeholder="如有不适症状等可记录" enterkeyhint="done"></textarea>
-                    </div>
-                    <p class="form-tip">💡 可先保存透前数据，下机后再编辑补填透后体重和减水量</p>
-                    <button type="submit" class="btn-primary">保存记录</button>
-                    <button type="button" id="cancelEditBtn" class="btn-cancel hidden">取消编辑</button>
-                </form>
+                        <div class="form-row">
+                            <label for="dialysisType">透析类型</label>
+                            <select id="dialysisType" required>
+                                <option value="HD">HD（血液透析）</option>
+                                <option value="HDF">HDF（血液透析滤过）</option>
+                                <option value="HP">HP（血液灌流）</option>
+                                <option value="HFHD">HFHD（高通量透析）</option>
+                                <option value="PD">PD（腹膜透析）</option>
+                            </select>
+                        </div>
+                        <div class="form-row">
+                            <label for="preWeight">透前体重 (kg)</label>
+                            <input type="number" id="preWeight" step="0.1" min="20" max="200" placeholder="如: 65.5" required inputmode="decimal" enterkeyhint="next">
+                            <span id="gainRateHint" class="gain-rate-hint"></span>
+                        </div>
+                        <div class="form-row">
+                            <label for="clothesWeight">衣服重量 (kg) <small style="font-weight:400;color:var(--text-light)">选填，用于扣除计算涨水率</small></label>
+                            <input type="number" id="clothesWeight" step="0.1" min="0" max="20" placeholder="如: 1.5" inputmode="decimal" enterkeyhint="next">
+                        </div>
+                        <div class="form-row">
+                            <label for="postWeight">透后体重 (kg) <small style="font-weight:400;color:var(--text-light)">选填，下机后补填</small></label>
+                            <input type="number" id="postWeight" step="0.1" min="20" max="200" placeholder="下机后填写" inputmode="decimal" enterkeyhint="next">
+                        </div>
+                        <div class="form-row">
+                            <label for="fluidRemoved">减水量 (mL) <small style="font-weight:400;color:var(--text-light)">选填，下机后补填</small></label>
+                            <input type="number" id="fluidRemoved" step="50" min="0" max="5000" placeholder="下机后填写" inputmode="numeric" enterkeyhint="next">
+                        </div>
+                        <div class="form-row">
+                            <label>透析症状 <small style="font-weight:400;color:var(--text-light)">选填，点击选择</small></label>
+                            <div class="symptom-tags" id="symptomTags">
+                                <button type="button" class="symptom-tag" data-symptom="抽筋">抽筋</button>
+                                <button type="button" class="symptom-tag" data-symptom="皮肤瘙痒">皮肤瘙痒</button>
+                                <button type="button" class="symptom-tag" data-symptom="头晕">头晕</button>
+                                <button type="button" class="symptom-tag" data-symptom="恶心呕吐">恶心呕吐</button>
+                                <button type="button" class="symptom-tag" data-symptom="胸闷">胸闷</button>
+                                <button type="button" class="symptom-tag" data-symptom="头痛">头痛</button>
+                                <button type="button" class="symptom-tag" data-symptom="乏力">乏力</button>
+                                <button type="button" class="symptom-tag" data-symptom="气短">气短</button>
+                                <button type="button" class="symptom-tag" data-symptom="低血压">低血压</button>
+                                <button type="button" class="symptom-tag" data-symptom="高血压">高血压</button>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <label for="notes">备注</label>
+                            <textarea id="notes" rows="2" placeholder="如有不适症状等可记录" enterkeyhint="done"></textarea>
+                        </div>
+                        <p class="form-tip">💡 可先保存透前数据，下机后再编辑补填透后体重和减水量</p>
+                        <button type="submit" class="btn-primary">保存记录</button>
+                        <button type="button" id="cancelEditBtn" class="btn-cancel hidden">取消编辑</button>
+                    </form>
+                </div>
             </div>
 
-            <!-- 记录列表 -->
-            <div class="card">
+            <!-- 历史记录（主要区域，占大篇幅） -->
+            <div class="card record-list-card">
                 <div class="card-header-row">
                     <h2 class="card-title">历史记录</h2>
                     <span id="recordCount" class="badge">0 条</span>
