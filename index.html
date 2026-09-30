@@ -171,59 +171,65 @@
 
         <!-- Tab 3: 化验指标 -->
         <section id="tab-metrics" class="tab-page">
-            <!-- 新增检查表单 -->
-            <div class="card">
-                <h2 class="card-title" id="metricFormTitle">记录检查指标</h2>
-                <p class="metric-hint">定期复查后录入，各项均选填，有什么填什么，方便对比变化</p>
-                <form id="metricForm" class="metric-form">
-                    <div class="form-row">
-                        <label for="metricDate">检查日期</label>
-                        <input type="date" id="metricDate" required inputmode="none">
-                    </div>
-                    <p class="metric-group-label">贫血 / 营养</p>
-                    <div class="metric-input-grid">
-                        <div class="metric-field">
-                            <label for="metric_hb">血红蛋白 <small>g/L</small></label>
-                            <input type="number" id="metric_hb" step="0.01" min="20" max="300" placeholder="目标 110-130" inputmode="decimal" enterkeyhint="next">
+            <!-- 新增检查表单（默认折叠，点击标题展开） -->
+            <div class="card metric-form-card collapsed" id="metricFormCard">
+                <h2 class="card-title metric-form-toggle" id="metricFormTitle" onclick="MetricsManager.toggleForm()">
+                    <span class="metric-toggle-icon" id="metricFormIcon">▶</span>
+                    记录检查指标
+                    <small class="metric-toggle-tip">点击展开录入</small>
+                </h2>
+                <div class="metric-form-body" id="metricFormBody" style="display:none">
+                    <p class="metric-hint">定期复查后录入，各项均选填，有什么填什么，方便对比变化</p>
+                    <form id="metricForm" class="metric-form">
+                        <div class="form-row">
+                            <label for="metricDate">检查日期</label>
+                            <input type="date" id="metricDate" required inputmode="none">
                         </div>
-                        <div class="metric-field">
-                            <label for="metric_alb">白蛋白 <small>g/L</small></label>
-                            <input type="number" id="metric_alb" step="0.01" min="10" max="70" placeholder="目标 ≥40" inputmode="decimal" enterkeyhint="next">
+                        <p class="metric-group-label">贫血 / 营养</p>
+                        <div class="metric-input-grid">
+                            <div class="metric-field">
+                                <label for="metric_hb">血红蛋白 <small>g/L</small></label>
+                                <input type="number" id="metric_hb" step="0.01" min="20" max="300" placeholder="目标 110-130" inputmode="decimal" enterkeyhint="next">
+                            </div>
+                            <div class="metric-field">
+                                <label for="metric_alb">白蛋白 <small>g/L</small></label>
+                                <input type="number" id="metric_alb" step="0.01" min="10" max="70" placeholder="目标 ≥40" inputmode="decimal" enterkeyhint="next">
+                            </div>
                         </div>
-                    </div>
-                    <p class="metric-group-label">电解质</p>
-                    <div class="metric-input-grid">
-                        <div class="metric-field">
-                            <label for="metric_k">血钾 <small>mmol/L</small></label>
-                            <input type="number" id="metric_k" step="0.01" min="1" max="10" placeholder="目标 3.5-5.3" inputmode="decimal" enterkeyhint="next">
+                        <p class="metric-group-label">电解质</p>
+                        <div class="metric-input-grid">
+                            <div class="metric-field">
+                                <label for="metric_k">血钾 <small>mmol/L</small></label>
+                                <input type="number" id="metric_k" step="0.01" min="1" max="10" placeholder="目标 3.5-5.3" inputmode="decimal" enterkeyhint="next">
+                            </div>
+                            <div class="metric-field">
+                                <label for="metric_na">血钠 <small>mmol/L</small></label>
+                                <input type="number" id="metric_na" step="0.01" min="100" max="180" placeholder="目标 135-145" inputmode="decimal" enterkeyhint="next">
+                            </div>
+                            <div class="metric-field">
+                                <label for="metric_ca">血钙 <small>mmol/L</small></label>
+                                <input type="number" id="metric_ca" step="0.01" min="1" max="5" placeholder="目标 2.1-2.5" inputmode="decimal" enterkeyhint="next">
+                            </div>
+                            <div class="metric-field">
+                                <label for="metric_p">血磷 <small>mmol/L</small></label>
+                                <input type="number" id="metric_p" step="0.01" min="0.3" max="5" placeholder="目标 1.13-1.78" inputmode="decimal" enterkeyhint="done">
+                            </div>
                         </div>
-                        <div class="metric-field">
-                            <label for="metric_na">血钠 <small>mmol/L</small></label>
-                            <input type="number" id="metric_na" step="0.01" min="100" max="180" placeholder="目标 135-145" inputmode="decimal" enterkeyhint="next">
+                        <p class="metric-group-label">骨代谢</p>
+                        <div class="metric-input-grid">
+                            <div class="metric-field">
+                                <label for="metric_pth">甲状旁腺激素 PTH <small>pg/mL</small></label>
+                                <input type="number" id="metric_pth" step="0.01" min="5" max="3000" placeholder="目标 150-300" inputmode="decimal" enterkeyhint="done">
+                            </div>
                         </div>
-                        <div class="metric-field">
-                            <label for="metric_ca">血钙 <small>mmol/L</small></label>
-                            <input type="number" id="metric_ca" step="0.01" min="1" max="5" placeholder="目标 2.1-2.5" inputmode="decimal" enterkeyhint="next">
-                        </div>
-                        <div class="metric-field">
-                            <label for="metric_p">血磷 <small>mmol/L</small></label>
-                            <input type="number" id="metric_p" step="0.01" min="0.3" max="5" placeholder="目标 1.13-1.78" inputmode="decimal" enterkeyhint="done">
-                        </div>
-                    </div>
-                    <p class="metric-group-label">骨代谢</p>
-                    <div class="metric-input-grid">
-                        <div class="metric-field">
-                            <label for="metric_pth">甲状旁腺激素 PTH <small>pg/mL</small></label>
-                            <input type="number" id="metric_pth" step="0.01" min="5" max="3000" placeholder="目标 150-300" inputmode="decimal" enterkeyhint="done">
-                        </div>
-                    </div>
-                    <button type="submit" class="btn-primary">保存指标</button>
-                    <button type="button" id="cancelMetricEditBtn" class="btn-cancel hidden">取消编辑</button>
-                </form>
+                        <button type="submit" class="btn-primary">保存指标</button>
+                        <button type="button" id="cancelMetricEditBtn" class="btn-cancel hidden">取消编辑</button>
+                    </form>
+                </div>
             </div>
 
-            <!-- 指标记录表格 -->
-            <div class="card">
+            <!-- 指标记录表格（主要区域，占大篇幅） -->
+            <div class="card metric-table-card">
                 <div class="card-header-row">
                     <h2 class="card-title">检查记录</h2>
                     <span id="metricCount" class="badge">0 条</span>
