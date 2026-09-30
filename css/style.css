@@ -1423,6 +1423,59 @@ body {
     margin-left: auto;
 }
 
+/* ===== 通用可折叠标题（记录页/指标页共用） ===== */
+.collapse-toggle {
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 0 !important;
+    padding: 4px 0;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.form-collapse-card:not(.collapsed) .collapse-toggle,
+.dry-weight-card:not(.collapsed) .collapse-toggle {
+    margin-bottom: 10px !important;
+}
+
+.collapse-icon {
+    display: inline-block;
+    font-size: 11px;
+    color: var(--primary);
+    transition: transform 0.2s;
+    flex: 0 0 auto;
+}
+
+.collapse-tip {
+    margin-left: auto;
+    font-size: 12px;
+    font-weight: 400;
+    color: var(--text-light);
+}
+
+/* 折叠卡片：收起时更紧凑 */
+.form-collapse-card {
+    padding-bottom: 14px;
+}
+
+.form-collapse-card.collapsed,
+.dry-weight-card.collapsed {
+    padding-bottom: 0;
+}
+
+/* 干体重卡片折叠态：显示行也收紧 */
+.dry-weight-card.collapsed .dry-weight-display {
+    margin-top: 10px;
+}
+
+/* 历史记录卡片：作为页面主区域，给足高度 */
+.record-list-card {
+    min-height: calc(100vh - 260px);
+}
+
 /* ===== 化验指标页 ===== */
 
 /* 表单卡片：折叠态更紧凑 */
