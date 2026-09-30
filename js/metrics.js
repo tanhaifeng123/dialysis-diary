@@ -25,6 +25,37 @@ var MetricsManager = {
         this.bindDecimalLimit();
     },
 
+    // 展开表单区
+    expandForm() {
+        var card = document.getElementById('metricFormCard');
+        var body = document.getElementById('metricFormBody');
+        var icon = document.getElementById('metricFormIcon');
+        if (card) card.classList.remove('collapsed');
+        if (body) body.style.display = 'block';
+        if (icon) icon.textContent = '▼';
+    },
+
+    // 收起表单区
+    collapseForm() {
+        var card = document.getElementById('metricFormCard');
+        var body = document.getElementById('metricFormBody');
+        var icon = document.getElementById('metricFormIcon');
+        if (card) card.classList.add('collapsed');
+        if (body) body.style.display = 'none';
+        if (icon) icon.textContent = '▶';
+    },
+
+    // 展开/收起切换
+    toggleForm() {
+        var body = document.getElementById('metricFormBody');
+        if (!body) return;
+        if (body.style.display === 'none') {
+            this.expandForm();
+        } else {
+            this.collapseForm();
+        }
+    },
+
     // 从 localStorage 加载
     load() {
         const data = localStorage.getItem(this.STORAGE_KEY);
@@ -126,6 +157,8 @@ var MetricsManager = {
         this.clearForm();
         this.setDefaultDate();
         this.render();
+        // 保存后收起表单，让表格回到视野
+        this.collapseForm();
     },
 
     // 编辑：回填表单
@@ -141,13 +174,17 @@ var MetricsManager = {
                 (record[def.key] !== null && record[def.key] !== undefined) ? record[def.key] : '';
         });
 
-        document.getElementById('metricFormTitle').textContent = '编辑检查指标';
+        document.getElementById('metricFormTitle').innerHTML =
+            '<span class="metric-toggle-icon" id="metricFormIcon">▼</span>编辑检查指标';
         document.getElementById('cancelMetricEditBtn').classList.remove('hidden');
 
+        // 编辑时自动展开表单
+        this.expandForm();
+
         // 滚动到表单
-        var form = document.getElementById('metricForm');
-        if (form && form.scrollIntoView) {
-            form.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        var card = document.getElementById('metricFormCard');
+        if (card && card.scrollIntoView) {
+            card.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
     },
 
@@ -166,8 +203,11 @@ var MetricsManager = {
         this.editingId = null;
         this.clearForm();
         this.setDefaultDate();
-        document.getElementById('metricFormTitle').textContent = '记录检查指标';
+        document.getElementById('metricFormTitle').innerHTML =
+            '<span class="metric-toggle-icon" id="metricFormIcon">▶</span>记录检查指标' +
+            '<small class="metric-toggle-tip">点击展开录入</small>';
         document.getElementById('cancelMetricEditBtn').classList.add('hidden');
+        this.collapseForm();
     },
 
     // 清空表单
