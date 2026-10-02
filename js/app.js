@@ -131,6 +131,9 @@ var App = {
     initMineralSwitch() {
         var self = this;
         this.foodMineral = 'k';
+        this.foodSearchQuery = '';
+        this.foodSortMode = false;
+        this.currentFoodLevel = 'low';
         var btns = document.querySelectorAll('.mineral-switch-btn');
         btns.forEach(function(btn) {
             btn.addEventListener('click', function() {
@@ -140,17 +143,33 @@ var App = {
                 self.foodMineral = btn.dataset.mineral;
                 self.updateFoodMineralUI();
 
-                // 清空搜索，重置到低含量分类
-                document.getElementById('foodSearch').value = '';
-                document.getElementById('foodSearchResult').classList.remove('active');
-                document.getElementById('foodList').style.display = '';
+                // 搜索词保留：切到磷/蛋白后直接看同一食物的另一项指标
+                // 档位重置回"低"，视图按搜索词自动决定
                 var tabBtns = document.querySelectorAll('.food-tab-btn');
                 tabBtns.forEach(function(b) {
                     b.classList.toggle('active', b.dataset.level === 'low');
                 });
-                self.renderFoods('low');
+                self.currentFoodLevel = 'low';
+                self.applyFoodView();
             });
         });
+    },
+
+    // 统一决定食物视图：有搜索词显示搜索结果，否则显示分类列表
+    applyFoodView() {
+        var resultBox = document.getElementById('foodSearchResult');
+        var foodList = document.getElementById('foodList');
+        var q = (this.foodSearchQuery || '').trim();
+        if (q !== '') {
+            foodList.style.display = 'none';
+            resultBox.classList.add('active');
+            this.searchFoods(q.toLowerCase());
+        } else {
+            resultBox.classList.remove('active');
+            resultBox.innerHTML = '';
+            foodList.style.display = '';
+            this.renderFoods(this.currentFoodLevel || 'low');
+        }
     },
 
     // 根据当前营养素更新页面文案
@@ -226,10 +245,9 @@ var App = {
             btn.addEventListener('click', function() {
                 tabBtns.forEach(function(b) { b.classList.remove('active'); });
                 btn.classList.add('active');
-                // 清空搜索框，显示分类列表
-                document.getElementById('foodSearch').value = '';
-                document.getElementById('foodSearchResult').classList.remove('active');
-                self.renderFoods(btn.dataset.level);
+                // 搜索词保留：同一食物在低/中/高档间切换查看
+                self.currentFoodLevel = btn.dataset.level;
+                self.applyFoodView();
             });
         });
 
@@ -238,6 +256,7 @@ var App = {
         var searchTimer = null;
         searchInput.addEventListener('input', function() {
             var keyword = this.value.trim().toLowerCase();
+            self.foodSearchQuery = keyword;
             var resultBox = document.getElementById('foodSearchResult');
             var foodList = document.getElementById('foodList');
 
@@ -245,6 +264,7 @@ var App = {
             if (keyword === '') {
                 resultBox.classList.remove('active');
                 foodList.style.display = '';
+                self.renderFoods(self.currentFoodLevel || 'low');
                 return;
             }
 
@@ -324,9 +344,10 @@ var App = {
         resultBox.innerHTML = html;
     },
 
-    // 渲染食物列表（按类别折叠）
+    // 渲染食物列表（按类别折叠，支持自定义类别顺序）
     renderFoods(level) {
         var self = this;
+        this.currentFoodLevel = level;
         const list = document.getElementById('foodList');
         const foodData = this.getFoodDataSet(level);
 
@@ -334,7 +355,17 @@ var App = {
 
         let html = `<p class="food-intro"><strong>${foodData.title}</strong><br>${foodData.tip}</p>`;
 
+        // 按用户保存的顺序排列类别（未保存过的类别按原始顺序排在后面）
+        var savedOrder = this.getFoodCategoryOrder();
         var keys = Object.keys(foodData.categories);
+        keys.sort(function(a, b) {
+            var ia = savedOrder.indexOf(a), ib = savedOrder.indexOf(b);
+            if (ia === -1 && ib === -1) return 0;
+            if (ia === -1) return 1;
+            if (ib === -1) return -1;
+            return ia - ib;
+        });
+
         for (var i = 0; i < keys.length; i++) {
             var category = keys[i];
             var foods = foodData.categories[category];
@@ -345,13 +376,26 @@ var App = {
                     '<div class="food-item-tip">' + f.tip + '</div>' +
                     '</div>';
             }).join('');
-            // 第一个类别默认展开，其余折叠
-            var expanded = (i === 0);
+            // 第一个类别默认展开，其余折叠；排序模式下全部展开方便调整
+            var expanded = this.foodSortMode || (i === 0);
+            var sortControls = '';
+            var headerClass = 'food-category-header';
+            var headerClick = 'App.toggleFoodCategory(this)';
+            if (this.foodSortMode) {
+                headerClass += ' sort-mode';
+                headerClick = '';
+                var catArg = encodeURIComponent(category);
+                sortControls = '<span class="food-sort-controls">' +
+                    '<button type="button" class="food-sort-move" onclick="App.moveFoodCategory(\'' + catArg + '\', -1)"' + (i === 0 ? ' disabled' : '') + ' aria-label="上移">↑</button>' +
+                    '<button type="button" class="food-sort-move" onclick="App.moveFoodCategory(\'' + catArg + '\', 1)"' + (i === keys.length - 1 ? ' disabled' : '') + ' aria-label="下移">↓</button>' +
+                '</span>';
+            }
             html += '<div class="food-category-group' + (expanded ? ' expanded' : '') + '">' +
-                '<div class="food-category-header" onclick="App.toggleFoodCategory(this)">' +
+                '<div class="' + headerClass + '"' + (headerClick ? ' onclick="' + headerClick + '"' : '') + '>' +
                     '<span class="food-category-toggle">' + (expanded ? '▼' : '▶') + '</span>' +
                     '<span class="food-category-name">' + category + '</span>' +
                     '<span class="food-category-count">' + foods.length + ' 种</span>' +
+                    sortControls +
                 '</div>' +
                 '<div class="food-category-body"' + (expanded ? '' : ' style="display:none"') + '>' +
                     '<div class="food-grid">' + foodItemsHtml + '</div>' +
@@ -360,6 +404,67 @@ var App = {
         }
 
         list.innerHTML = html;
+    },
+
+    // ===== 类别自定义排序 =====
+
+    // 读取用户保存的类别顺序（全局共享：钾/磷/蛋白三视图用同一份顺序，
+    // 类别名能匹配上的按保存顺序排，匹配不上的按原始顺序补在后面）
+    getFoodCategoryOrder() {
+        try {
+            var raw = localStorage.getItem('food_cat_order');
+            var arr = raw ? JSON.parse(raw) : [];
+            return Array.isArray(arr) ? arr : [];
+        } catch (e) { return []; }
+    },
+
+    // 保存类别顺序
+    saveFoodCategoryOrder(order) {
+        localStorage.setItem('food_cat_order', JSON.stringify(order));
+    },
+
+    // 计算当前有效顺序（保存的顺序 + 未保存的类别按原始顺序补齐）
+    getEffectiveCategoryOrder() {
+        var foodData = this.getFoodDataSet(this.currentFoodLevel || 'low');
+        var keys = Object.keys(foodData.categories);
+        var saved = this.getFoodCategoryOrder().filter(function(k) { return keys.indexOf(k) !== -1; });
+        var rest = keys.filter(function(k) { return saved.indexOf(k) === -1; });
+        return saved.concat(rest);
+    },
+
+    // 进入/退出排序模式
+    toggleFoodSortMode() {
+        this.foodSortMode = !this.foodSortMode;
+        var btn = document.getElementById('foodSortBtn');
+        var hint = document.getElementById('foodSortHint');
+        if (btn) {
+            btn.textContent = this.foodSortMode ? '✓ 完成' : '⇅ 调整类别顺序';
+            btn.classList.toggle('sorting', this.foodSortMode);
+        }
+        if (hint) hint.classList.toggle('hidden', !this.foodSortMode);
+        // 排序时强制切到分类列表视图
+        if (this.foodSortMode) {
+            this.foodSearchQuery = '';
+            document.getElementById('foodSearch').value = '';
+            document.getElementById('foodSearchResult').classList.remove('active');
+            document.getElementById('foodSearchResult').innerHTML = '';
+            document.getElementById('foodList').style.display = '';
+        }
+        this.renderFoods(this.currentFoodLevel || 'low');
+    },
+
+    // 上移/下移类别
+    moveFoodCategory(catEncoded, dir) {
+        var name = decodeURIComponent(catEncoded);
+        var order = this.getEffectiveCategoryOrder();
+        var idx = order.indexOf(name);
+        var swap = idx + dir;
+        if (idx === -1 || swap < 0 || swap >= order.length) return;
+        var tmp = order[idx];
+        order[idx] = order[swap];
+        order[swap] = tmp;
+        this.saveFoodCategoryOrder(order);
+        this.renderFoods(this.currentFoodLevel || 'low');
     },
 
     // 展开/折叠食物类别
