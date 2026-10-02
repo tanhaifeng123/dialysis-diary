@@ -376,21 +376,19 @@ var App = {
                     '<div class="food-item-tip">' + f.tip + '</div>' +
                     '</div>';
             }).join('');
-            // 第一个类别默认展开，其余折叠；排序模式下全部展开方便调整
-            var expanded = this.foodSortMode || (i === 0);
+            // 第一个类别默认展开，其余折叠；排序模式下全部折叠（只看主类目，方便整体调序）
+            var expanded = this.foodSortMode ? false : (i === 0);
             var sortControls = '';
             var headerClass = 'food-category-header';
             var headerClick = 'App.toggleFoodCategory(this)';
+            var groupClass = 'food-category-group';
             if (this.foodSortMode) {
                 headerClass += ' sort-mode';
                 headerClick = '';
-                var catArg = encodeURIComponent(category);
-                sortControls = '<span class="food-sort-controls">' +
-                    '<button type="button" class="food-sort-move" onclick="App.moveFoodCategory(\'' + catArg + '\', -1)"' + (i === 0 ? ' disabled' : '') + ' aria-label="上移">↑</button>' +
-                    '<button type="button" class="food-sort-move" onclick="App.moveFoodCategory(\'' + catArg + '\', 1)"' + (i === keys.length - 1 ? ' disabled' : '') + ' aria-label="下移">↓</button>' +
-                '</span>';
+                groupClass += ' sort-draggable';
+                sortControls = '<span class="food-drag-handle" aria-label="按住拖动排序">≡</span>';
             }
-            html += '<div class="food-category-group' + (expanded ? ' expanded' : '') + '">' +
+            html += '<div class="' + groupClass + (expanded ? ' expanded' : '') + '" data-cat="' + encodeURIComponent(category) + '">' +
                 '<div class="' + headerClass + '"' + (headerClick ? ' onclick="' + headerClick + '"' : '') + '>' +
                     '<span class="food-category-toggle">' + (expanded ? '▼' : '▶') + '</span>' +
                     '<span class="food-category-name">' + category + '</span>' +
@@ -404,6 +402,7 @@ var App = {
         }
 
         list.innerHTML = html;
+        if (this.foodSortMode) this.initFoodDrag();
     },
 
     // ===== 类别自定义排序 =====
@@ -453,7 +452,113 @@ var App = {
         this.renderFoods(this.currentFoodLevel || 'low');
     },
 
-    // 上移/下移类别
+    // 拖动排序：在排序模式下给每个类别挂手柄拖拽交互（触摸 + 鼠标）
+    initFoodDrag() {
+        var self = this;
+        var list = document.getElementById('foodList');
+        if (!list) return;
+
+        var handles = list.querySelectorAll('.food-drag-handle');
+        handles.forEach(function(handle) {
+            // 触摸端
+            handle.addEventListener('touchstart', function(e) {
+                e.preventDefault();
+                self.startFoodDrag(e.touches[0].clientY, handle);
+            }, { passive: false });
+            handle.addEventListener('touchmove', function(e) {
+                e.preventDefault();
+                if (self.dragState) self.onFoodDragMove(e.touches[0].clientY);
+            }, { passive: false });
+            handle.addEventListener('touchend', function(e) {
+                e.preventDefault();
+                self.endFoodDrag();
+            }, { passive: false });
+            handle.addEventListener('touchcancel', function() { self.endFoodDrag(); });
+
+            // 鼠标端（桌面调试）
+            handle.addEventListener('mousedown', function(e) {
+                e.preventDefault();
+                self.startFoodDrag(e.clientY, handle);
+            });
+        });
+
+        if (!this._foodDragBound) {
+            this._foodDragBound = true;
+            document.addEventListener('mousemove', function(e) {
+                if (self.dragState) self.onFoodDragMove(e.clientY);
+            });
+            document.addEventListener('mouseup', function() {
+                if (self.dragState) self.endFoodDrag();
+            });
+        }
+    },
+
+    // 开始拖动（由手柄事件触发，直接定位手柄所属类别）
+    startFoodDrag(clientY, handleEl) {
+        var target = handleEl ? handleEl.closest('.food-category-group') : null;
+        if (!target) {
+            var list = document.getElementById('foodList');
+            var groups = list ? list.querySelectorAll('.food-category-group') : [];
+            for (var i = 0; i < groups.length; i++) {
+                var r = groups[i].getBoundingClientRect();
+                if (clientY >= r.top && clientY <= r.bottom) { target = groups[i]; break; }
+            }
+        }
+        if (!target) return;
+
+        this.dragState = { el: target, startY: clientY, order: this.getEffectiveCategoryOrder() };
+        target.classList.add('dragging');
+        if (navigator.vibrate) navigator.vibrate(10);
+    },
+
+    // 拖动中：根据指针 Y 位置计算应插入的位置并实时交换
+    onFoodDragMove(clientY) {
+        var st = this.dragState;
+        if (!st) return;
+        var list = document.getElementById('foodList');
+        var groups = Array.prototype.slice.call(list.querySelectorAll('.food-category-group'));
+        var fromIdx = groups.indexOf(st.el);
+        if (fromIdx === -1) return;
+
+        // 找指针当前覆盖的类别
+        var toIdx = fromIdx;
+        for (var i = 0; i < groups.length; i++) {
+            if (groups[i] === st.el) continue;
+            var r = groups[i].getBoundingClientRect();
+            var mid = r.top + r.height / 2;
+            if (clientY >= r.top && clientY <= r.bottom) { toIdx = i; break; }
+        }
+        if (toIdx === fromIdx) return;
+
+        // DOM 交换后立即重排顺序数组并保存
+        if (toIdx > fromIdx) {
+            st.el.parentNode.insertBefore(groups[toIdx], st.el.nextSibling);
+        } else {
+            st.el.parentNode.insertBefore(st.el, groups[toIdx]);
+        }
+        // 同步顺序数组
+        var names = Array.prototype.slice.call(
+            list.querySelectorAll('.food-category-group')
+        ).map(function(g) { return decodeURIComponent(g.dataset.cat); });
+        this.saveFoodCategoryOrder(names);
+        st.order = names;
+    },
+
+    // 结束拖动
+    endFoodDrag() {
+        var st = this.dragState;
+        if (!st) return;
+        st.el.classList.remove('dragging');
+        this.dragState = null;
+        // 用当前 DOM 顺序落盘，保证与视觉一致
+        var list = document.getElementById('foodList');
+        var names = Array.prototype.slice.call(
+            list.querySelectorAll('.food-category-group')
+        ).map(function(g) { return decodeURIComponent(g.dataset.cat); });
+        this.saveFoodCategoryOrder(names);
+    },
+
+    // 上移/下移类别（保留：供无触摸环境或键盘操作）
     moveFoodCategory(catEncoded, dir) {
         var name = decodeURIComponent(catEncoded);
         var order = this.getEffectiveCategoryOrder();
