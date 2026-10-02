@@ -471,8 +471,8 @@ var RecordManager = {
             if (avgGain !== null) summaryParts.push('均涨水率 ' + avgGain + '%');
             if (avgFluid !== null) summaryParts.push('均减水 ' + avgFluid + ' mL');
 
-            // 第一个月份默认展开
-            var expanded = (mi === 0);
+            // 所有月份默认折叠，由用户点击展开
+            var expanded = false;
 
             html += '<div class="month-group' + (expanded ? ' expanded' : '') + '" data-month="' + monthKey + '">';
             html += '<div class="month-group-header" onclick="RecordManager.toggleMonth(this)">';
