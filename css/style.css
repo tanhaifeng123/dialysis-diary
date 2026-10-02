@@ -1423,6 +1423,47 @@ body {
     margin-left: auto;
 }
 
+/* ===== 第一次透析日期小字条 ===== */
+.first-dialysis-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    background: var(--card-bg);
+    border: 1px dashed #CFD8DC;
+    border-radius: var(--radius-sm);
+    padding: 8px 12px;
+    margin-bottom: 10px;
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+.first-dialysis-bar .fd-text {
+    cursor: pointer;
+    line-height: 1.5;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.first-dialysis-bar .fd-text strong {
+    color: var(--primary);
+    font-size: 15px;
+    margin: 0 2px;
+}
+
+.first-dialysis-bar .fd-text small {
+    color: var(--text-light);
+}
+
+.first-dialysis-bar .fd-input {
+    flex: 0 0 auto;
+    max-width: 150px;
+    padding: 4px 8px;
+    border: 1px solid #E0E0E0;
+    border-radius: 6px;
+    font-size: 13px;
+    background: #FAFBFC;
+}
+
 /* ===== 通用可折叠标题（记录页/指标页共用） ===== */
 .collapse-toggle {
     cursor: pointer;
