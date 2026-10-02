@@ -27,6 +27,12 @@
 
         <!-- Tab 1: 透析记录 -->
         <section id="tab-records" class="tab-page active">
+            <!-- 第一次透析日期（小字条，点击设置） -->
+            <div class="first-dialysis-bar" id="firstDialysisBar">
+                <span class="fd-text" id="firstDialysisText" onclick="RecordManager.editFirstDate()"></span>
+                <input type="date" id="firstDialysisDate" class="fd-input hidden">
+            </div>
+
             <!-- 干体重设置（默认折叠） -->
             <div class="card dry-weight-card collapsed" id="dryWeightCard">
                 <h2 class="card-title collapse-toggle" id="dryWeightTitle" onclick="RecordManager.toggleDryWeight()">
