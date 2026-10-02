@@ -342,13 +342,13 @@ body {
 }
 
 .task-form {
-    flex-direction: row;
+    flex-direction: column;
     align-items: stretch;
     gap: 8px;
 }
 
-.task-form input {
-    flex: 1;
+.task-form input[type="text"] {
+    width: 100%;
 }
 
 /* ===== 按钮 ===== */
@@ -1051,10 +1051,84 @@ body {
     margin-top: -2px;
 }
 
-.task-text {
+/* 任务正文 + 日期（纵向两行） */
+.task-main {
     flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.task-text {
     font-size: 15px;
     word-break: break-all;
+    line-height: 1.35;
+}
+
+/* 任务日期标签 */
+.task-date {
+    font-size: 11px;
+    color: var(--text-light);
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    align-self: flex-start;
+    padding: 1px 7px;
+    border-radius: 999px;
+    background: #EFF3F7;
+}
+
+.task-date::before {
+    content: "📅";
+    font-size: 10px;
+}
+
+.task-date.is-today {
+    color: var(--primary);
+    background: rgba(25, 118, 210, 0.1);
+}
+
+.task-date.is-past {
+    color: var(--danger);
+    background: rgba(229, 57, 53, 0.1);
+}
+
+.task-item.done .task-date {
+    text-decoration: none;
+}
+
+/* 任务表单：日期 + 按钮一行 */
+.task-date-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin-top: 8px;
+}
+
+.task-date-input {
+    flex: 1;
+    min-width: 0;
+    padding: 9px 12px;
+    font-size: 14px;
+    font-family: inherit;
+    color: var(--text);
+    background: #F7F9FB;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    -webkit-tap-highlight-color: transparent;
+}
+
+.task-date-input:focus {
+    outline: none;
+    border-color: var(--primary);
+    background: #fff;
+}
+
+.task-date-row .btn-primary {
+    flex: 0 0 auto;
+    margin-top: 0;
+    white-space: nowrap;
 }
 
 .task-delete {
