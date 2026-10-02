@@ -92,14 +92,18 @@ var TaskManager = {
         `).join('');
     },
 
-    // 日期格式化为「10月3日」样式，今年省略年份
+    // 日期格式化为「10月3日 周六」样式，今年省略年份
     formatDate(dateStr) {
         var parts = String(dateStr).split('-');
         if (parts.length !== 3) return dateStr;
         var y = parseInt(parts[0], 10), m = parseInt(parts[1], 10), d = parseInt(parts[2], 10);
+        var week = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
+        var wd = '';
+        var dt = new Date(y, m - 1, d);
+        if (!isNaN(dt.getTime())) wd = ' ' + week[dt.getDay()];
         var now = new Date();
         var prefix = (y === now.getFullYear()) ? '' : (y + '年');
-        return prefix + m + '月' + d + '日';
+        return prefix + m + '月' + d + '日' + wd;
     },
 
     // 日期样式：今天/逾期用不同颜色提示
