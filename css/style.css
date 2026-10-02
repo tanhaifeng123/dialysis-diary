@@ -1767,3 +1767,73 @@ body {
     border-radius: 3px;
     flex: 0 0 auto;
 }
+
+/* ===== 食物类别排序 ===== */
+.food-sort-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin: 10px 0;
+}
+
+.food-sort-btn {
+    border: 1px solid var(--border);
+    background: #fff;
+    color: var(--text-secondary);
+    font-size: 13px;
+    padding: 6px 14px;
+    border-radius: 999px;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.food-sort-btn.sorting {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: #fff;
+    font-weight: 600;
+}
+
+.food-sort-hint {
+    font-size: 12px;
+    color: var(--text-light);
+    text-align: right;
+    line-height: 1.4;
+}
+
+.food-category-header.sort-mode {
+    cursor: default;
+}
+
+.food-sort-controls {
+    margin-left: auto;
+    display: inline-flex;
+    gap: 6px;
+    flex: 0 0 auto;
+}
+
+.food-sort-move {
+    width: 30px;
+    height: 30px;
+    border: 1px solid var(--primary);
+    background: #fff;
+    color: var(--primary);
+    border-radius: 8px;
+    font-size: 15px;
+    line-height: 1;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.food-sort-move:disabled {
+    opacity: 0.25;
+    border-color: var(--border);
+    color: var(--text-light);
+    cursor: default;
+}
+
+/* 排序模式下类别计数给按钮让位 */
+.food-category-header.sort-mode .food-category-count {
+    margin-left: 0;
+}
