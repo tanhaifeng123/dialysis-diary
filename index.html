@@ -311,7 +311,10 @@
                 <h2 class="card-title">任务管理</h2>
                 <form id="taskForm" class="task-form">
                     <input type="text" id="taskInput" placeholder="输入任务名称..." maxlength="50" required inputmode="text" enterkeyhint="done">
-                    <button type="submit" class="btn-primary">添加</button>
+                    <div class="task-date-row">
+                        <input type="date" id="taskDate" class="task-date-input" aria-label="任务日期">
+                        <button type="submit" class="btn-primary">添加</button>
+                    </div>
                 </form>
                 <div id="taskList" class="task-list">
                     <p class="empty-hint">暂无任务</p>
