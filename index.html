@@ -296,6 +296,10 @@
                         <small class="food-tab-range">&gt;250mg</small>
                     </button>
                 </div>
+                <div class="food-sort-bar">
+                    <button type="button" id="foodSortBtn" class="food-sort-btn" onclick="App.toggleFoodSortMode()">⇅ 调整类别顺序</button>
+                    <span class="food-sort-hint hidden" id="foodSortHint">点 ↑↓ 调整位置，改完再点「完成」</span>
+                </div>
                 <div id="foodList" class="food-list"></div>
                 <p class="food-source" id="foodSource">数据来源：《中国食物成分表·标准版（第6版）》+《成人慢性肾脏病食养指南（2024年版）》+ 武汉第三医院/复旦中山医院透析患者饮食指南</p>
             </div>
