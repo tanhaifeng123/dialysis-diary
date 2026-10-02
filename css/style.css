@@ -1827,13 +1827,41 @@ body {
     transition: box-shadow 0.15s;
 }
 
+/* 拖动中的真实元素：留在文档流里占位（由占位块负责），本身不可见 */
 .food-category-group.dragging {
-    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
-    opacity: 0.92;
+    visibility: hidden;
+    height: 0 !important;
+    overflow: hidden;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+/* 跟手浮动的幽灵元素（脱离文档流，不被屏幕边缘截断） */
+.food-drag-ghost {
+    position: fixed;
+    left: 12px;
+    right: 12px;
+    top: 0;
+    z-index: 999;
+    pointer-events: none;
     background: #fff;
     border-radius: 10px;
-    position: relative;
-    z-index: 5;
+    box-shadow: 0 10px 26px rgba(0, 0, 0, 0.22), 0 0 0 2px var(--primary) inset;
+    opacity: 0.97;
+    will-change: transform;
+}
+
+.food-drag-ghost .food-category-body {
+    display: none;
+}
+
+/* 原位占位块：视觉上"挖一个洞"，指示落点 */
+.food-drag-placeholder {
+    border: 2px dashed var(--primary);
+    border-radius: 10px;
+    background: rgba(25, 118, 210, 0.06);
+    margin: 8px 0;
+    transition: all 0.12s ease;
 }
 
 /* 拖动滑块手柄（主类目右侧） */
