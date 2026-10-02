@@ -23,17 +23,50 @@ function mergeFoodData(base, extra) {
     });
 }
 
+// 应用数据修订：同名食物保留与权威值一致的条目，删除矛盾条目（含跨档位冲突）
+function applyFoodFixes(db, fixMap, field) {
+    if (!db || !fixMap) return;
+    // 第一遍：收集每个食物名在各档位出现的条目
+    var seen = {};
+    ['low', 'mid', 'high'].forEach(function(level) {
+        var cats = db[level].categories || {};
+        Object.keys(cats).forEach(function(cat) {
+            cats[cat] = cats[cat].filter(function(f) {
+                if (!fixMap.hasOwnProperty(f.name)) return true;
+                var correct = fixMap[f.name];
+                if (f[field] !== correct) return false; // 与权威值不符，删除
+                var key = f.name;
+                if (seen[key]) return false;             // 已保留过一条，去重
+                seen[key] = true;
+                return true;
+            });
+        });
+    });
+}
+
 var App = {
     // Toast 定时器
     toastTimer: null,
 
     // 初始化
     init() {
-        // 合并扩充食物数据（钾/磷/优质蛋白）
+        // 1) 合并扩充食物数据（钾/磷/优质蛋白）
         if (typeof FOOD_EXTRA !== 'undefined') {
             mergeFoodData(FOOD_DATA, FOOD_EXTRA.k);
             mergeFoodData(PHOS_DATA, FOOD_EXTRA.p);
             mergeFoodData(PROTEIN_DATA, FOOD_EXTRA.pr);
+        }
+        // 2) 应用数据修订：全库合并后统一清理同名矛盾条目（依据第6版）
+        if (typeof FOOD_FIX_DATA !== 'undefined') {
+            applyFoodFixes(FOOD_DATA, FOOD_FIX_DATA.fix.k, 'k');
+            applyFoodFixes(PHOS_DATA, FOOD_FIX_DATA.fix.p, 'p');
+            applyFoodFixes(PROTEIN_DATA, FOOD_FIX_DATA.fix.pr, 'pr');
+        }
+        // 3) 合并本次新增食物（与既有名称不冲突）
+        if (typeof FOOD_FIX_DATA !== 'undefined') {
+            mergeFoodData(FOOD_DATA, FOOD_FIX_DATA.add.k);
+            mergeFoodData(PHOS_DATA, FOOD_FIX_DATA.add.p);
+            mergeFoodData(PROTEIN_DATA, FOOD_FIX_DATA.add.pr);
         }
 
         this.initTabNav();
