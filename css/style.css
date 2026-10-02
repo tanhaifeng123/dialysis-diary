@@ -344,24 +344,30 @@ body {
 .task-form {
     flex-direction: row;
     align-items: stretch;
-    gap: 6px;
+    gap: 5px;
 }
 
+/* 任务表单整体降低高度，三者高度对齐 */
 .task-form input[type="text"] {
     flex: 1 1 auto;
     min-width: 0;
+    padding: 8px 10px;
+    font-size: 15px;
 }
 
-/* 日期框：与输入框同行，紧凑显示（date input 有内在宽度，需强制收缩） */
-.task-date-input {
-    flex: 0 1 122px;
-    width: 122px;
-    min-width: 0;
-    max-width: 122px;
-    padding: 0 4px;
-    font-size: 13px;
+/* 日期框：与输入框同行，紧凑显示（需提高优先级覆盖 .task-form input） */
+.task-form input.task-date-input {
+    flex: 0 0 auto;
+    width: 104px;
+    min-width: 104px;
+    max-width: 104px;
+    height: auto;
+    padding: 0 2px;
+    font-size: 12px;
+    line-height: 1.2;
+    text-align: center;
     font-family: inherit;
-    color: var(--text);
+    color: var(--text-secondary);
     background: #F7F9FB;
     border: 1px solid var(--border);
     border-radius: var(--radius-sm);
@@ -395,7 +401,8 @@ body {
 .task-form .btn-primary {
     flex: 0 0 auto;
     width: auto;
-    padding: 14px 15px;
+    padding: 8px 14px;
+    font-size: 15px;
     white-space: nowrap;
 }
 
