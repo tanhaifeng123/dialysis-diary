@@ -9,6 +9,23 @@ var TaskManager = {
         this.load();
         this.render();
         this.bindEvents();
+        this.setDefaultDate();
+    },
+
+    // 日期默认为今天
+    setDefaultDate() {
+        var input = document.getElementById('taskDate');
+        if (input && !input.value) input.value = this.todayStr();
+    },
+
+    // 今天的 YYYY-MM-DD
+    todayStr() {
+        var d = new Date();
+        var m = (d.getMonth() + 1).toString();
+        var dd = d.getDate().toString();
+        if (m.length < 2) m = '0' + m;
+        if (dd.length < 2) dd = '0' + dd;
+        return d.getFullYear() + '-' + m + '-' + dd;
     },
 
     // 加载任务
@@ -23,10 +40,11 @@ var TaskManager = {
     },
 
     // 添加任务
-    add(text) {
+    add(text, date) {
         const task = {
             id: Date.now().toString(),
             text: text.trim(),
+            date: date || this.todayStr(),
             done: false,
             createdAt: new Date().toISOString()
         };
@@ -61,13 +79,35 @@ var TaskManager = {
             return;
         }
 
+        const self = this;
         list.innerHTML = this.tasks.map(task => `
             <div class="task-item ${task.done ? 'done' : ''}">
                 <div class="task-checkbox ${task.done ? 'checked' : ''}" onclick="TaskManager.toggle('${task.id}')"></div>
-                <span class="task-text">${this.escapeHtml(task.text)}</span>
+                <div class="task-main">
+                    <span class="task-text">${this.escapeHtml(task.text)}</span>
+                    ${task.date ? '<span class="task-date' + this.dateClass(task.date) + '">' + self.formatDate(task.date) + '</span>' : ''}
+                </div>
                 <button class="task-delete" onclick="TaskManager.remove('${task.id}')" aria-label="删除任务">×</button>
             </div>
         `).join('');
+    },
+
+    // 日期格式化为「10月3日」样式，今年省略年份
+    formatDate(dateStr) {
+        var parts = String(dateStr).split('-');
+        if (parts.length !== 3) return dateStr;
+        var y = parseInt(parts[0], 10), m = parseInt(parts[1], 10), d = parseInt(parts[2], 10);
+        var now = new Date();
+        var prefix = (y === now.getFullYear()) ? '' : (y + '年');
+        return prefix + m + '月' + d + '日';
+    },
+
+    // 日期样式：今天/逾期用不同颜色提示
+    dateClass(dateStr) {
+        var today = this.todayStr();
+        if (dateStr === today) return ' is-today';
+        if (dateStr < today) return ' is-past';
+        return '';
     },
 
     // 绑定表单事件
@@ -76,10 +116,12 @@ var TaskManager = {
         form.addEventListener('submit', (e) => {
             e.preventDefault();
             const input = document.getElementById('taskInput');
+            const dateInput = document.getElementById('taskDate');
             const text = input.value.trim();
             if (text) {
-                this.add(text);
+                this.add(text, dateInput ? dateInput.value : '');
                 input.value = '';
+                if (dateInput) dateInput.value = this.todayStr(); // 重置回今天
                 App.showToast('任务已添加');
             }
         });
