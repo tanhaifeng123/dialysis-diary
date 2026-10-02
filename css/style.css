@@ -344,41 +344,29 @@ body {
 .task-form {
     flex-direction: row;
     align-items: stretch;
-    gap: 8px;
+    gap: 6px;
 }
 
 .task-form input[type="text"] {
-    flex: 1;
+    flex: 1 1 auto;
     min-width: 0;
 }
 
-/* 标题行：任务管理 + 日期，同一行对齐 */
-.task-title-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
-    margin-bottom: 12px;
-}
-
-.task-title-row .card-title {
-    margin-bottom: 0;
-    flex: 0 0 auto;
-}
-
-/* 日期框：与标题同等视觉大小（16px/600） */
+/* 日期框：与输入框同行，紧凑显示（date input 有内在宽度，需强制收缩） */
 .task-date-input {
-    flex: 0 1 auto;
-    width: auto;
-    max-width: 58%;
-    padding: 5px 8px;
-    font-size: 16px;
+    flex: 0 1 122px;
+    width: 122px;
+    min-width: 0;
+    max-width: 122px;
+    padding: 0 4px;
+    font-size: 13px;
     font-family: inherit;
-    font-weight: 600;
     color: var(--text);
-    background: transparent;
+    background: #F7F9FB;
     border: 1px solid var(--border);
     border-radius: var(--radius-sm);
+    -webkit-appearance: none;
+    appearance: none;
     -webkit-tap-highlight-color: transparent;
 }
 
@@ -405,8 +393,9 @@ body {
 }
 
 .task-form .btn-primary {
+    flex: 0 0 auto;
     width: auto;
-    padding: 14px 20px;
+    padding: 14px 15px;
     white-space: nowrap;
 }
 
