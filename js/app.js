@@ -460,97 +460,185 @@ var App = {
 
         var handles = list.querySelectorAll('.food-drag-handle');
         handles.forEach(function(handle) {
-            // 触摸端
+            // 触摸端：start 挂在手柄上，move/end 挂在 document（手指滑出手柄仍可拖）
             handle.addEventListener('touchstart', function(e) {
                 e.preventDefault();
-                self.startFoodDrag(e.touches[0].clientY, handle);
+                self.startFoodDrag(e.touches[0].clientY, handle, e.touches[0].clientX);
             }, { passive: false });
-            handle.addEventListener('touchmove', function(e) {
-                e.preventDefault();
-                if (self.dragState) self.onFoodDragMove(e.touches[0].clientY);
-            }, { passive: false });
-            handle.addEventListener('touchend', function(e) {
-                e.preventDefault();
-                self.endFoodDrag();
-            }, { passive: false });
-            handle.addEventListener('touchcancel', function() { self.endFoodDrag(); });
 
             // 鼠标端（桌面调试）
             handle.addEventListener('mousedown', function(e) {
                 e.preventDefault();
-                self.startFoodDrag(e.clientY, handle);
+                self.startFoodDrag(e.clientY, handle, e.clientX);
             });
         });
 
-        if (!this._foodDragBound) {
-            this._foodDragBound = true;
-            document.addEventListener('mousemove', function(e) {
-                if (self.dragState) self.onFoodDragMove(e.clientY);
-            });
-            document.addEventListener('mouseup', function() {
-                if (self.dragState) self.endFoodDrag();
-            });
-        }
+        if (this._foodDragBound) return;
+        this._foodDragBound = true;
+
+        document.addEventListener('touchmove', function(e) {
+            if (!self.dragState) return;
+            e.preventDefault();
+            self.onFoodDragMove(e.touches[0].clientY);
+        }, { passive: false });
+
+        document.addEventListener('touchend', function() {
+            if (self.dragState) self.endFoodDrag();
+        });
+        document.addEventListener('touchcancel', function() {
+            if (self.dragState) self.endFoodDrag();
+        });
+
+        document.addEventListener('mousemove', function(e) {
+            if (self.dragState) self.onFoodDragMove(e.clientY);
+        });
+        document.addEventListener('mouseup', function() {
+            if (self.dragState) self.endFoodDrag();
+        });
     },
 
     // 开始拖动（由手柄事件触发，直接定位手柄所属类别）
-    startFoodDrag(clientY, handleEl) {
+    startFoodDrag(clientY, handleEl, clientX) {
         var target = handleEl ? handleEl.closest('.food-category-group') : null;
         if (!target) {
-            var list = document.getElementById('foodList');
-            var groups = list ? list.querySelectorAll('.food-category-group') : [];
-            for (var i = 0; i < groups.length; i++) {
-                var r = groups[i].getBoundingClientRect();
-                if (clientY >= r.top && clientY <= r.bottom) { target = groups[i]; break; }
+            var list0 = document.getElementById('foodList');
+            var groups0 = list0 ? list0.querySelectorAll('.food-category-group') : [];
+            for (var i = 0; i < groups0.length; i++) {
+                var r0 = groups0[i].getBoundingClientRect();
+                if (clientY >= r0.top && clientY <= r0.bottom) { target = groups0[i]; break; }
             }
         }
         if (!target) return;
 
-        this.dragState = { el: target, startY: clientY, order: this.getEffectiveCategoryOrder() };
+        var rect = target.getBoundingClientRect();
+        var h = rect.height;
+        // 幽灵元素：脱离文档流跟随手指，避免被屏幕顶部/底部截断
+        var ghost = target.cloneNode(true);
+        ghost.classList.add('food-drag-ghost');
+        ghost.classList.remove('dragging');
+        ghost.style.height = h + 'px';
+        document.body.appendChild(ghost);
+
+        // 原位置留一个占位块，撑住布局（视觉上"挖了个洞"）
+        var placeholder = document.createElement('div');
+        placeholder.className = 'food-drag-placeholder';
+        placeholder.style.height = h + 'px';
+
+        this.dragState = {
+            el: target,          // 逻辑定位用（在 DOM 中移动，但用 CSS 隐藏）
+            ghost: ghost,        // 跟手的视觉元素
+            placeholder: placeholder,
+            offsetY: clientY - rect.top, // 手指在元素内的相对位置
+            startY: clientY,
+            elHeight: h,
+            curY: clientY,
+            autoScrollTimer: null,
+            lastAutoScroll: 0
+        };
+
+        // 隐藏真实元素但保留占位，保证其它项立刻上移填补
         target.classList.add('dragging');
+        target.parentNode.insertBefore(placeholder, target);
+
+        this.positionGhost(clientY);
         if (navigator.vibrate) navigator.vibrate(10);
     },
 
-    // 拖动中：根据指针 Y 位置计算应插入的位置并实时交换
+    // 更新幽灵元素位置（仅钳制在视口内，保证不被截断；配合自动滚动让落点可见）
+    positionGhost(clientY) {
+        var st = this.dragState;
+        if (!st) return;
+        st.curY = clientY;
+        var top = clientY - st.offsetY;
+        var vh = window.innerHeight;
+        if (top < 0) top = 0;
+        if (top + st.elHeight > vh) top = Math.max(0, vh - st.elHeight);
+        st.ghost.style.transform = 'translateY(' + top + 'px)';
+    },
+
+    // 拖动中：依据指针位置决定插入点，并处理边缘自动滚动
     onFoodDragMove(clientY) {
         var st = this.dragState;
         if (!st) return;
+        this.positionGhost(clientY);
+        this.handleAutoScroll(clientY);
+        this.reorderByPointer(clientY);
+    },
+
+    // 根据指针位置重排（与其它项中心点比较）
+    reorderByPointer(clientY) {
+        var st = this.dragState;
+        if (!st) return;
+        var placeholder = st.placeholder;
         var list = document.getElementById('foodList');
-        var groups = Array.prototype.slice.call(list.querySelectorAll('.food-category-group'));
-        var fromIdx = groups.indexOf(st.el);
-        if (fromIdx === -1) return;
+        if (!list || !placeholder || !placeholder.parentNode) return;
 
-        // 找指针当前覆盖的类别
-        var toIdx = fromIdx;
-        for (var i = 0; i < groups.length; i++) {
-            if (groups[i] === st.el) continue;
-            var r = groups[i].getBoundingClientRect();
-            var mid = r.top + r.height / 2;
-            if (clientY >= r.top && clientY <= r.bottom) { toIdx = i; break; }
-        }
-        if (toIdx === fromIdx) return;
-
-        // DOM 交换后立即重排顺序数组并保存
-        if (toIdx > fromIdx) {
-            st.el.parentNode.insertBefore(groups[toIdx], st.el.nextSibling);
-        } else {
-            st.el.parentNode.insertBefore(st.el, groups[toIdx]);
-        }
-        // 同步顺序数组
-        var names = Array.prototype.slice.call(
+        var others = Array.prototype.slice.call(
             list.querySelectorAll('.food-category-group')
-        ).map(function(g) { return decodeURIComponent(g.dataset.cat); });
-        this.saveFoodCategoryOrder(names);
-        st.order = names;
+        ).filter(function(g) { return g !== st.el; });
+
+        // 找第一个"指针尚未越过其中心"的项，插到它前面
+        var target = null;
+        for (var i = 0; i < others.length; i++) {
+            var r = others[i].getBoundingClientRect();
+            if (clientY < r.top + r.height / 2) { target = others[i]; break; }
+        }
+
+        if (target) {
+            if (placeholder.nextElementSibling !== target) {
+                list.insertBefore(placeholder, target);
+            }
+        } else if (placeholder !== list.lastElementChild) {
+            list.appendChild(placeholder);
+        }
+    },
+
+    // 边缘自动滚动：指针进入上/下热区时滚动页面（至少 3px/帧，每帧都滚动）
+    handleAutoScroll(clientY) {
+        var st = this.dragState;
+        if (!st) return;
+        var EDGE = 90;
+        var vh = window.innerHeight;
+        var speed = 0;
+        if (clientY < EDGE) {
+            speed = -(EDGE - clientY) / EDGE * 16 - 3;
+        } else if (clientY > vh - EDGE) {
+            speed = (clientY - (vh - EDGE)) / EDGE * 16 + 3;
+        }
+        st.autoScrollSpeed = speed;
+        if (speed === 0) return;
+
+        if (st.autoScrollTimer) return; // 已在滚动中
+        var self = this;
+        var tick = function() {
+            var s = self.dragState;
+            if (!s || !s.autoScrollSpeed) { s && (s.autoScrollTimer = null); return; }
+            window.scrollBy(0, s.autoScrollSpeed);
+            // 滚动后重新计算插入位置
+            self.reorderByPointer(s.curY);
+            // 幽灵保持跟手
+            self.positionGhost(s.curY);
+            s.autoScrollTimer = requestAnimationFrame(tick);
+        };
+        st.autoScrollTimer = requestAnimationFrame(tick);
     },
 
     // 结束拖动
     endFoodDrag() {
         var st = this.dragState;
         if (!st) return;
+        if (st.autoScrollTimer) { cancelAnimationFrame(st.autoScrollTimer); st.autoScrollTimer = null; }
+
+        // 把真实元素挪到占位块位置，然后移除辅助元素
+        if (st.placeholder.parentNode) {
+            st.placeholder.parentNode.insertBefore(st.el, st.placeholder);
+        }
         st.el.classList.remove('dragging');
+        if (st.placeholder.parentNode) st.placeholder.parentNode.removeChild(st.placeholder);
+        if (st.ghost.parentNode) st.ghost.parentNode.removeChild(st.ghost);
         this.dragState = null;
-        // 用当前 DOM 顺序落盘，保证与视觉一致
+
+        // 落盘
         var list = document.getElementById('foodList');
         var names = Array.prototype.slice.call(
             list.querySelectorAll('.food-category-group')
