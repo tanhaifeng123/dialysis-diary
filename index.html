@@ -308,13 +308,13 @@
         <!-- Tab 5: 任务管理 -->
         <section id="tab-tasks" class="tab-page">
             <div class="card">
-                <h2 class="card-title">任务管理</h2>
+                <div class="task-title-row">
+                    <h2 class="card-title">任务管理</h2>
+                    <input type="date" id="taskDate" class="task-date-input" aria-label="任务日期">
+                </div>
                 <form id="taskForm" class="task-form">
                     <input type="text" id="taskInput" placeholder="输入任务名称..." maxlength="50" required inputmode="text" enterkeyhint="done">
-                    <div class="task-date-row">
-                        <input type="date" id="taskDate" class="task-date-input" aria-label="任务日期">
-                        <button type="submit" class="btn-primary">添加</button>
-                    </div>
+                    <button type="submit" class="btn-primary">添加</button>
                 </form>
                 <div id="taskList" class="task-list">
                     <p class="empty-hint">暂无任务</p>
