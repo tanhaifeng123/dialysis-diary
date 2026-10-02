@@ -3,6 +3,7 @@
 var RecordManager = {
     STORAGE_KEY: 'dialysis_records',
     DRY_WEIGHT_KEY: 'dialysis_dry_weight',
+    FIRST_DATE_KEY: 'dialysis_first_date',
     records: [],
     dryWeight: null,  // 干体重
     editingId: null,  // 当前编辑的记录 ID
@@ -25,8 +26,58 @@ var RecordManager = {
         this.loadDryWeight();
         this.setDefaultDate();
         this.initSymptomTags();
+        this.initFirstDate();
         this.render();
         this.bindEvents();
+    },
+
+    // ===== 第一次透析日期（小字条） =====
+
+    // 初始化：绑定日期选择、渲染天数
+    initFirstDate() {
+        var self = this;
+        var input = document.getElementById('firstDialysisDate');
+        input.addEventListener('change', function() {
+            var v = input.value;
+            if (v) {
+                localStorage.setItem(self.FIRST_DATE_KEY, v);
+                self.renderFirstDate();
+                App.showToast('已保存，自动计算透析天数');
+            }
+            input.classList.add('hidden');
+        });
+        this.renderFirstDate();
+    },
+
+    // 渲染：已设置显示天数，未设置显示提示
+    renderFirstDate() {
+        var saved = localStorage.getItem(this.FIRST_DATE_KEY);
+        var textEl = document.getElementById('firstDialysisText');
+        if (!textEl) return;
+        if (saved) {
+            var first = new Date(saved.replace(/-/g, '/'));
+            var today = new Date();
+            first.setHours(0, 0, 0, 0);
+            today.setHours(0, 0, 0, 0);
+            var diff = Math.floor((today - first) / 86400000);
+            if (diff < 0) diff = 0;
+            textEl.innerHTML = '距离第一次透析 <strong>' + diff + '</strong> 天 <small>点击修改</small>';
+        } else {
+            textEl.innerHTML = '<small>点击设置第一次透析日期，自动计算透析天数</small>';
+        }
+    },
+
+    // 点击文字：显示日期选择框
+    editFirstDate() {
+        var input = document.getElementById('firstDialysisDate');
+        var saved = localStorage.getItem(this.FIRST_DATE_KEY);
+        if (saved) input.value = saved;
+        input.classList.remove('hidden');
+        input.focus();
+        // 移动端直接唤起系统日期选择器
+        if (input.showPicker) {
+            try { input.showPicker(); } catch (e) {}
+        }
     },
 
     // 初始化症状标签点击事件
