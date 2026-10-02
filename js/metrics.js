@@ -289,10 +289,12 @@ var MetricsManager = {
         var records = this.sortedRecords();
         if (countEl) countEl.textContent = records.length + ' 条';
 
-        // 表头
+        // 表头：英文缩写 + 下方中文名（小字）+ 目标范围
         var html = '<tr><th class="metric-date-col">日期</th>';
         this.METRIC_DEFS.forEach(function(def) {
-            html += '<th>' + def.short + '<small>' + self.rangeText(def) + ' ' + def.unit + '</small></th>';
+            html += '<th>' + def.short +
+                '<small class="metric-th-cn">' + def.name + '</small>' +
+                '<small>' + self.rangeText(def) + ' ' + def.unit + '</small></th>';
         });
         html += '<th>操作</th></tr>';
         thead.innerHTML = html;
