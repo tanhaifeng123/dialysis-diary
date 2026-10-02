@@ -376,8 +376,8 @@ var App = {
                     '<div class="food-item-tip">' + f.tip + '</div>' +
                     '</div>';
             }).join('');
-            // 第一个类别默认展开，其余折叠；排序模式下全部折叠（只看主类目，方便整体调序）
-            var expanded = this.foodSortMode ? false : (i === 0);
+            // 全部类别默认折叠，由用户点击自行展开
+            var expanded = false;
             var sortControls = '';
             var headerClass = 'food-category-header';
             var headerClick = 'App.toggleFoodCategory(this)';
