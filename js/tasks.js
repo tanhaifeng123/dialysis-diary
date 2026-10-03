@@ -43,7 +43,7 @@ var TaskManager = {
     // 添加任务
     add(text, date) {
         const task = {
-            id: Date.now().toString(),
+            id: 't' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7),
             text: text.trim(),
             date: date || this.todayStr(),
             done: false,
