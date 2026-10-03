@@ -32,6 +32,7 @@ var TaskManager = {
     load() {
         const data = localStorage.getItem(this.STORAGE_KEY);
         this.tasks = data ? JSON.parse(data) : [];
+        return this.tasks;
     },
 
     // 保存任务
@@ -51,6 +52,11 @@ var TaskManager = {
         this.tasks.unshift(task);
         this.save();
         this.render();
+    },
+
+    // 页面每次打开时刷新到期提醒（初始化调用）
+    refreshDue() {
+        this.renderDueBanner();
     },
 
     // 切换完成状态
@@ -74,6 +80,7 @@ var TaskManager = {
     // 渲染任务列表
     render() {
         const list = document.getElementById('taskList');
+        this.renderDueBanner();
         if (this.tasks.length === 0) {
             list.innerHTML = '<p class="empty-hint">暂无任务</p>';
             return;
@@ -85,11 +92,138 @@ var TaskManager = {
                 <div class="task-checkbox ${task.done ? 'checked' : ''}" onclick="TaskManager.toggle('${task.id}')"></div>
                 <div class="task-main">
                     <span class="task-text">${this.escapeHtml(task.text)}</span>
-                    ${task.date ? '<span class="task-date' + this.dateClass(task.date) + '">' + self.formatDate(task.date) + '</span>' : ''}
+                    <div class="task-meta">
+                        <button type="button" class="task-date${this.dateClass(task.date)}" onclick="TaskManager.editDate('${task.id}')" aria-label="点击修改日期">
+                            ${task.date ? self.formatDate(task.date) : '设置日期'}
+                        </button>
+                        <button type="button" class="task-cal-btn" onclick="TaskManager.addToCalendar('${task.id}')" aria-label="加到手机日历提醒" title="加到手机日历">⏰ 提醒</button>
+                    </div>
                 </div>
                 <button class="task-delete" onclick="TaskManager.remove('${task.id}')" aria-label="删除任务">×</button>
             </div>
         `).join('');
+    },
+
+    // 点击日期 → 就地切换为日期选择器修改
+    editDate(id) {
+        var task = this.tasks.find(t => t.id === id);
+        if (!task) return;
+
+        // 已有一个编辑器在显示则先清理
+        var oldInput = document.querySelector('.task-date-edit');
+        if (oldInput) oldInput.remove();
+
+        var btn = document.querySelector('.task-date[onclick*="' + id + '"]');
+        if (!btn) return;
+
+        var input = document.createElement('input');
+        input.type = 'date';
+        input.className = 'task-date-edit';
+        input.value = task.date || this.todayStr();
+
+        var committed = false;
+        var self = this;
+        var commit = function() {
+            if (committed) return;
+            committed = true;
+            var v = input.value;
+            if (v && v !== task.date) {
+                task.date = v;
+                self.save();
+                App.showToast('日期已改为 ' + self.formatDate(v));
+            }
+            self.render();
+        };
+
+        btn.parentNode.insertBefore(input, btn);
+        btn.style.display = 'none';
+
+        input.addEventListener('change', commit);
+        // 失焦提交（用户点别处时保存）
+        input.addEventListener('blur', function() {
+            setTimeout(commit, 120);
+        });
+
+        try { input.focus({ preventScroll: true }); } catch (e) { input.focus(); }
+    },
+
+    // 生成 .ics 日历文件并下载/打开 → 由手机系统日历接管提醒
+    addToCalendar(id) {
+        var task = this.tasks.find(t => t.id === id);
+        if (!task) return;
+        if (!task.date) { App.showToast('请先设置日期'); return; }
+
+        var dt = task.date.replace(/-/g, '');
+        // 默认提醒时间：当天 09:00
+        var startT = dt + 'T090000';
+        var endT = dt + 'T093000';
+        var stamp = this.icsStamp();
+        var uid = 'dialysis-task-' + task.id + '@dialysis-diary';
+
+        var ics = [
+            'BEGIN:VCALENDAR',
+            'VERSION:2.0',
+            'PRODID:-//Dialysis Diary//Task//CN',
+            'CALSCALE:GREGORIAN',
+            'BEGIN:VEVENT',
+            'UID:' + uid,
+            'DTSTAMP:' + stamp,
+            'DTSTART;TZID=Asia/Shanghai:' + startT,
+            'DTEND;TZID=Asia/Shanghai:' + endT,
+            'SUMMARY:' + this.icsEscape(task.text),
+            'DESCRIPTION:' + this.icsEscape('来自透析记录工作台的任务提醒'),
+            'BEGIN:VALARM',
+            'TRIGGER:-PT0M',
+            'ACTION:DISPLAY',
+            'DESCRIPTION:' + this.icsEscape(task.text),
+            'END:VALARM',
+            'END:VEVENT',
+            'END:VCALENDAR'
+        ].join('\r\n');
+
+        var blob = new Blob([ics], { type: 'text/calendar;charset=utf-8' });
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.href = url;
+        a.download = '任务提醒-' + task.text.slice(0, 10) + '.ics';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(function() { URL.revokeObjectURL(url); }, 3000);
+
+        App.showToast('日历文件已生成，打开即可加入手机日历');
+    },
+
+    // iCalendar 时间戳
+    icsStamp() {
+        var d = new Date();
+        var p = (n) => (n < 10 ? '0' + n : '' + n);
+        return d.getUTCFullYear() + p(d.getUTCMonth() + 1) + p(d.getUTCDate()) +
+            'T' + p(d.getUTCHours()) + p(d.getUTCMinutes()) + p(d.getUTCSeconds()) + 'Z';
+    },
+
+    // iCalendar 文本转义
+    icsEscape(s) {
+        return String(s).replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\n/g, '\\n');
+    },
+
+    // 顶部到期提醒条：今天/已过期的未完成任务
+    renderDueBanner() {
+        var banner = document.getElementById('taskDueBanner');
+        if (!banner) return;
+        var today = this.todayStr();
+        var due = this.tasks.filter(function(t) { return !t.done && t.date && t.date <= today; });
+        if (due.length === 0) {
+            banner.classList.add('hidden');
+            banner.innerHTML = '';
+            return;
+        }
+        var overdue = due.filter(function(t) { return t.date < today; }).length;
+        var parts = [];
+        if (due.length - overdue > 0) parts.push('今天到期 ' + (due.length - overdue) + ' 项');
+        if (overdue > 0) parts.push('已过期 ' + overdue + ' 项');
+        banner.className = 'task-due-banner' + (overdue > 0 ? ' has-overdue' : '');
+        banner.innerHTML = '🔔 ' + parts.join(' · ') + ' 未完成';
     },
 
     // 日期格式化为「10月3日（周六）」样式，今年省略年份
