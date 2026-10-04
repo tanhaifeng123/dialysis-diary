@@ -1173,21 +1173,59 @@ body {
     text-decoration: none;
 }
 
-/* 内联日期编辑器 */
+/* 内联日期编辑器容器（input + 确定 + 取消），独占一整行 */
+.task-date-editor {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    flex-wrap: wrap;
+    width: 100%;
+}
+
 .task-date-edit {
     font-family: inherit;
     font-size: 16px;
     color: var(--text);
-    padding: 2px 6px;
+    padding: 5px 6px;
     border: 1px solid var(--primary);
-    border-radius: 999px;
+    border-radius: 6px;
     background: #fff;
     -webkit-appearance: none;
     appearance: none;
-    max-width: 150px;
-    transform: scale(0.75);
-    transform-origin: center left;
+    flex: 1 1 auto;
+    min-width: 0;
+    max-width: 126px;
     outline: none;
+    line-height: 1.3;
+    min-height: 32px;
+    box-sizing: border-box;
+}
+
+.task-date-ok,
+.task-date-cancel {
+    font-family: inherit;
+    font-size: 12px;
+    line-height: 1;
+    padding: 9px 7px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    white-space: nowrap;
+    min-height: 32px;
+    box-sizing: border-box;
+    flex: 0 0 auto;
+}
+
+.task-date-ok {
+    background: var(--primary);
+    color: #fff;
+}
+
+.task-date-cancel {
+    background: #ECEFF1;
+    color: var(--text-secondary);
 }
 
 /* 加到日历提醒按钮 */
@@ -1633,6 +1671,39 @@ body {
     -webkit-tap-highlight-color: transparent;
 }
 
+/* 编辑态容器：input + 确定 + 取消，一行排布，可换行 */
+.first-dialysis-bar .fd-edit-wrap {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+    width: 100%;
+}
+
+.first-dialysis-bar .fd-ok,
+.first-dialysis-bar .fd-cancel {
+    font-family: inherit;
+    font-size: 13px;
+    line-height: 1;
+    padding: 7px 12px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    white-space: nowrap;
+}
+
+.first-dialysis-bar .fd-ok {
+    background: var(--primary, #1976D2);
+    color: #fff;
+}
+
+.first-dialysis-bar .fd-cancel {
+    background: #ECEFF1;
+    color: var(--text-secondary, #607D8B);
+}
+
 .first-dialysis-bar .fd-text strong {
     color: var(--primary);
     font-size: 15px;
@@ -1643,17 +1714,18 @@ body {
     color: var(--text-light);
 }
 
-/* 字号 16px 防止 iOS 点击自动放大，再用 scale 缩回视觉 13px */
+/* 字号 16px 防止 iOS 点击自动放大；编辑态下正常尺寸便于操作 */
 .first-dialysis-bar .fd-input {
     flex: 0 0 auto;
-    max-width: 150px;
-    padding: 4px 8px;
-    border: 1px solid #E0E0E0;
+    max-width: 160px;
+    padding: 7px 10px;
+    border: 1px solid var(--primary, #1976D2);
     border-radius: 6px;
     font-size: 16px;
-    transform: scale(0.82);
-    transform-origin: center left;
-    background: #FAFBFC;
+    line-height: 1.3;
+    min-height: 34px;
+    box-sizing: border-box;
+    background: #fff;
 }
 
 /* ===== 通用可折叠标题（记录页/指标页共用） ===== */
