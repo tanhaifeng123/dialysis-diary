@@ -37,6 +37,7 @@ var RecordManager = {
     initFirstDate() {
         var self = this;
         var input = document.getElementById('firstDialysisDate');
+        var textEl = document.getElementById('firstDialysisText');
         input.addEventListener('change', function() {
             var v = input.value;
             if (v) {
@@ -45,6 +46,16 @@ var RecordManager = {
                 App.showToast('已保存，自动计算透析天数');
             }
             input.classList.add('hidden');
+            if (textEl) textEl.classList.remove('hidden');
+            self.closeFirstDateTimer && clearTimeout(self.closeFirstDateTimer);
+        });
+        // 失焦时用延时关闭：给系统日期选择器足够时间弹出与操作
+        input.addEventListener('blur', function() {
+            self.closeFirstDateTimer && clearTimeout(self.closeFirstDateTimer);
+            self.closeFirstDateTimer = setTimeout(function() {
+                input.classList.add('hidden');
+                if (textEl) textEl.classList.remove('hidden');
+            }, 800);
         });
         this.renderFirstDate();
     },
@@ -54,6 +65,7 @@ var RecordManager = {
         var saved = localStorage.getItem(this.FIRST_DATE_KEY);
         var textEl = document.getElementById('firstDialysisText');
         if (!textEl) return;
+        textEl.classList.remove('hidden');
         if (saved) {
             var first = new Date(saved.replace(/-/g, '/'));
             var today = new Date();
@@ -69,12 +81,18 @@ var RecordManager = {
 
     // 点击文字：显示日期选择框
     editFirstDate() {
+        var self = this;
         var input = document.getElementById('firstDialysisDate');
+        var textEl = document.getElementById('firstDialysisText');
         var saved = localStorage.getItem(this.FIRST_DATE_KEY);
         if (saved) input.value = saved;
+        // 取消可能存在的延时关闭
+        this.closeFirstDateTimer && clearTimeout(this.closeFirstDateTimer);
         input.classList.remove('hidden');
-        input.focus();
-        // 移动端直接唤起系统日期选择器
+        if (textEl) textEl.classList.add('hidden');
+        // 先聚焦（保证之后一定会有 blur，从而恢复文字显示）
+        try { input.focus({ preventScroll: true }); } catch (e) { input.focus(); }
+        // 再在用户手势内唤起系统日期选择器
         if (input.showPicker) {
             try { input.showPicker(); } catch (e) {}
         }
