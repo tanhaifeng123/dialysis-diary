@@ -111,7 +111,10 @@ var TaskManager = {
 
         // 已有一个编辑器在显示则先清理
         var oldInput = document.querySelector('.task-date-edit');
-        if (oldInput) oldInput.remove();
+        if (oldInput) {
+            if (this.editBlurTimer) clearTimeout(this.editBlurTimer);
+            oldInput.remove();
+        }
 
         var btn = document.querySelector('.task-date[onclick*="' + id + '"]');
         if (!btn) return;
@@ -126,6 +129,7 @@ var TaskManager = {
         var commit = function() {
             if (committed) return;
             committed = true;
+            if (self.editBlurTimer) clearTimeout(self.editBlurTimer);
             var v = input.value;
             if (v && v !== task.date) {
                 task.date = v;
@@ -138,13 +142,20 @@ var TaskManager = {
         btn.parentNode.insertBefore(input, btn);
         btn.style.display = 'none';
 
+        // 选择完成后立即保存
         input.addEventListener('change', commit);
-        // 失焦提交（用户点别处时保存）
+        // 失焦用延时关闭：给系统日期选择器足够时间弹出与操作
         input.addEventListener('blur', function() {
-            setTimeout(commit, 120);
+            if (self.editBlurTimer) clearTimeout(self.editBlurTimer);
+            self.editBlurTimer = setTimeout(commit, 800);
         });
 
+        // 先聚焦（保证之后一定会有 blur，从而兜底提交/恢复）
         try { input.focus({ preventScroll: true }); } catch (e) { input.focus(); }
+        // 再在用户手势内唤起系统日期选择器
+        if (input.showPicker) {
+            try { input.showPicker(); } catch (e) {}
+        }
     },
 
     // 生成 .ics 日历文件并下载/打开 → 由手机系统日历接管提醒
