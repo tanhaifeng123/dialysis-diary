@@ -33,30 +33,8 @@ var RecordManager = {
 
     // ===== 第一次透析日期（小字条） =====
 
-    // 初始化：绑定日期选择、渲染天数
+    // 初始化：渲染天数（不再自动折叠，改由「确定/取消」按钮控制）
     initFirstDate() {
-        var self = this;
-        var input = document.getElementById('firstDialysisDate');
-        var textEl = document.getElementById('firstDialysisText');
-        input.addEventListener('change', function() {
-            var v = input.value;
-            if (v) {
-                localStorage.setItem(self.FIRST_DATE_KEY, v);
-                self.renderFirstDate();
-                App.showToast('已保存，自动计算透析天数');
-            }
-            input.classList.add('hidden');
-            if (textEl) textEl.classList.remove('hidden');
-            self.closeFirstDateTimer && clearTimeout(self.closeFirstDateTimer);
-        });
-        // 失焦时用延时关闭：给系统日期选择器足够时间弹出与操作
-        input.addEventListener('blur', function() {
-            self.closeFirstDateTimer && clearTimeout(self.closeFirstDateTimer);
-            self.closeFirstDateTimer = setTimeout(function() {
-                input.classList.add('hidden');
-                if (textEl) textEl.classList.remove('hidden');
-            }, 800);
-        });
         this.renderFirstDate();
     },
 
@@ -79,23 +57,40 @@ var RecordManager = {
         }
     },
 
-    // 点击文字：显示日期选择框
+    // 点击文字：显示日期选择框 + 确定/取消（不会自动收起）
     editFirstDate() {
-        var self = this;
-        var input = document.getElementById('firstDialysisDate');
+        var wrap = document.getElementById('firstDialysisEdit');
         var textEl = document.getElementById('firstDialysisText');
+        var input = document.getElementById('firstDialysisDate');
         var saved = localStorage.getItem(this.FIRST_DATE_KEY);
         if (saved) input.value = saved;
-        // 取消可能存在的延时关闭
-        this.closeFirstDateTimer && clearTimeout(this.closeFirstDateTimer);
-        input.classList.remove('hidden');
-        if (textEl) textEl.classList.add('hidden');
-        // 先聚焦（保证之后一定会有 blur，从而恢复文字显示）
-        try { input.focus({ preventScroll: true }); } catch (e) { input.focus(); }
-        // 再在用户手势内唤起系统日期选择器
+        wrap.classList.remove('hidden');
+        textEl.classList.add('hidden');
+        // 唤起系统日期选择器（失败也没关系，input 一直留在页面上可点）
         if (input.showPicker) {
             try { input.showPicker(); } catch (e) {}
         }
+        setTimeout(function() { try { input.focus({ preventScroll: true }); } catch (e) {} }, 60);
+    },
+
+    // 点「确定」：保存并收起
+    confirmFirstDate() {
+        var input = document.getElementById('firstDialysisDate');
+        var v = input.value;
+        if (v) {
+            localStorage.setItem(this.FIRST_DATE_KEY, v);
+            App.showToast('已保存，自动计算透析天数');
+        }
+        this.renderFirstDate();
+        document.getElementById('firstDialysisEdit').classList.add('hidden');
+        document.getElementById('firstDialysisText').classList.remove('hidden');
+    },
+
+    // 点「取消」：不保存直接收起
+    cancelFirstDate() {
+        this.renderFirstDate();
+        document.getElementById('firstDialysisEdit').classList.add('hidden');
+        document.getElementById('firstDialysisText').classList.remove('hidden');
     },
 
     // 初始化症状标签点击事件
