@@ -325,6 +325,83 @@
             </div>
         </section>
 
+        <!-- Tab 6: 血压记录 -->
+        <section id="tab-bp" class="tab-page">
+            <!-- 摘要卡：最近一次 + 近7天平均 -->
+            <div class="card bp-summary-card">
+                <h2 class="card-title">血压概况</h2>
+                <div id="bpSummary"></div>
+            </div>
+
+            <!-- 录入表单（默认折叠） -->
+            <div class="card metric-form-card collapsed" id="bpFormCard">
+                <h2 class="card-title metric-form-toggle" id="bpFormTitle" onclick="BpManager.toggleForm()">
+                    <span class="metric-toggle-icon" id="bpFormIcon">▶</span>
+                    记录血压
+                    <small class="metric-toggle-tip">点击展开录入</small>
+                </h2>
+                <div class="metric-form-body" id="bpFormBody" style="display:none">
+                    <p class="metric-hint">居家自测血压随手记，自动判断高低并画出变化趋势</p>
+                    <form id="bpForm" class="bp-form">
+                        <div class="bp-input-row">
+                            <div class="bp-field">
+                                <label for="bpSys">收缩压（高压）<small>mmHg</small></label>
+                                <input type="number" id="bpSys" inputmode="numeric" min="40" max="300" placeholder="如 130" required enterkeyhint="next">
+                            </div>
+                            <span class="bp-slash">/</span>
+                            <div class="bp-field">
+                                <label for="bpDia">舒张压（低压）<small>mmHg</small></label>
+                                <input type="number" id="bpDia" inputmode="numeric" min="20" max="200" placeholder="如 80" required enterkeyhint="next">
+                            </div>
+                        </div>
+                        <div class="bp-input-row">
+                            <div class="bp-field">
+                                <label for="bpPulse">脉搏 <small>次/分（选填）</small></label>
+                                <input type="number" id="bpPulse" inputmode="numeric" min="20" max="250" placeholder="如 72" enterkeyhint="next">
+                            </div>
+                            <div class="bp-field">
+                                <label for="bpDate">日期</label>
+                                <input type="date" id="bpDate" inputmode="none">
+                            </div>
+                            <div class="bp-field">
+                                <label for="bpTime">时间</label>
+                                <input type="time" id="bpTime" inputmode="none">
+                            </div>
+                        </div>
+                        <button type="submit" class="btn-primary">保存记录</button>
+                        <button type="button" id="cancelBpEditBtn" class="btn-cancel hidden">取消编辑</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- 趋势图 -->
+            <div class="card" id="bpChartWrap">
+                <div class="card-header-row">
+                    <h2 class="card-title">血压趋势</h2>
+                    <span class="bp-chart-hint">最近 14 次</span>
+                </div>
+                <div class="bp-chart-box">
+                    <canvas id="bpChart"></canvas>
+                </div>
+                <p class="bp-legend">🔴 收缩压　🔵 舒张压　⚪ 脉搏（虚线）</p>
+            </div>
+            <div class="card hidden" id="bpChartEmpty">
+                <p class="empty-hint">记录满 2 次后这里会显示血压变化曲线</p>
+            </div>
+
+            <!-- 记录列表 -->
+            <div class="card">
+                <div class="card-header-row">
+                    <h2 class="card-title">全部记录</h2>
+                    <span id="bpCount" class="badge">0 条</span>
+                </div>
+                <div id="bpList" class="bp-list">
+                    <p class="empty-hint">暂无血压记录</p>
+                </div>
+                <p class="food-source">血压分级依据《中国高血压防治指南》及透析患者常用参考值，仅供自我监测，具体以医生判断为准</p>
+            </div>
+        </section>
+
     </main>
 
     <!-- 底部导航 -->
@@ -359,6 +436,12 @@
             </svg>
             <span>任务</span>
         </button>
+        <button class="nav-btn" data-tab="bp">
+            <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
+                <path d="M20.57 14.86L22 13.43 20.57 12 17 15.57 8.43 7 12 3.43 10.57 2 9.14 3.43 7.71 2 5.57 4.14 4.14 2.71 2.71 4.14 4.14 5.57 2 7.71 3.43 9.14 2 10.57 3.43 12 7 8.43 15.57 17 12 20.57 13.43 22 14.86 20.57 16.29 22 18.43 19.86 19.86 21.29 21.29 19.86 19.86 18.43 22 16.29 20.57 14.86zM12 15.5c-1.93 0-3.5-1.57-3.5-3.5s1.57-3.5 3.5-3.5 3.5 1.57 3.5 3.5-1.57 3.5-3.5 3.5z"/>
+            </svg>
+            <span>血压</span>
+        </button>
     </nav>
 
     <!-- Toast 提示 -->
@@ -368,6 +451,7 @@
     <script src="js/foods-extra.js" defer></script>
     <script src="js/foods-update.js" defer></script>
     <script src="js/tasks.js" defer></script>
+    <script src="js/blood-pressure.js" defer></script>
     <script src="js/metrics.js" defer></script>
     <script src="js/records.js" defer></script>
     <script src="js/stats.js" defer></script>
