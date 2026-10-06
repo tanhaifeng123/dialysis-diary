@@ -267,65 +267,7 @@
             </div>
         </section>
 
-        <!-- Tab 4: 钾/磷含量食物 -->
-        <section id="tab-foods" class="tab-page">
-            <div class="card">
-                <!-- 矿物质/营养素切换：钾 / 磷 / 优质蛋白 -->
-                <div class="mineral-switch" id="mineralSwitch">
-                    <button type="button" class="mineral-switch-btn active" data-mineral="k">钾含量</button>
-                    <button type="button" class="mineral-switch-btn" data-mineral="p">磷含量</button>
-                    <button type="button" class="mineral-switch-btn" data-mineral="pr">优质蛋白</button>
-                </div>
-                <h2 class="card-title" id="foodCardTitle">钾含量食物参考</h2>
-                <p class="food-intro" id="foodIntro">
-                    透析患者需控制钾摄入，每日建议 <strong>2-3g</strong> 钾。
-                </p>
-                <p class="food-disclaimer" id="foodDisclaimer">仅供参考，具体以实际食物钾含量为准</p>
-                <div class="food-search-box">
-                    <input type="text" id="foodSearch" placeholder="搜索食物名称，如：香蕉、菠菜..." autocomplete="off" inputmode="search" enterkeyhint="search">
-                    <span class="food-search-icon">🔍</span>
-                </div>
-                <div id="foodSearchResult" class="food-search-result"></div>
-                <div class="food-tabs" id="foodLevelTabs">
-                    <button class="food-tab-btn active" data-level="low">
-                        <span class="food-tab-icon green"></span><span class="food-tab-label">低钾</span>
-                        <small class="food-tab-range">&lt;150mg</small>
-                    </button>
-                    <button class="food-tab-btn" data-level="mid">
-                        <span class="food-tab-icon yellow"></span><span class="food-tab-label">中钾</span>
-                        <small class="food-tab-range">150-250mg</small>
-                    </button>
-                    <button class="food-tab-btn" data-level="high">
-                        <span class="food-tab-icon red"></span><span class="food-tab-label">高钾</span>
-                        <small class="food-tab-range">&gt;250mg</small>
-                    </button>
-                </div>
-                <div class="food-sort-bar">
-                    <button type="button" id="foodSortBtn" class="food-sort-btn" onclick="App.toggleFoodSortMode()">⇅ 调整类别顺序</button>
-                    <span class="food-sort-hint hidden" id="foodSortHint">按住右侧 ≡ 上下拖动分类，改完点「完成」</span>
-                </div>
-                <div id="foodList" class="food-list"></div>
-                <p class="food-source" id="foodSource">数据来源：《中国食物成分表·标准版（第6版）》+《成人慢性肾脏病食养指南（2024年版）》+ 武汉第三医院/复旦中山医院透析患者饮食指南</p>
-            </div>
-        </section>
-
-        <!-- Tab 5: 任务管理 -->
-        <section id="tab-tasks" class="tab-page">
-            <div class="card">
-                <h2 class="card-title">任务管理</h2>
-                <div id="taskDueBanner" class="task-due-banner hidden"></div>
-                <form id="taskForm" class="task-form">
-                    <input type="text" id="taskInput" placeholder="输入任务名称..." maxlength="50" required inputmode="text" enterkeyhint="done">
-                    <input type="date" id="taskDate" class="task-date-input" aria-label="任务日期">
-                    <button type="submit" class="btn-primary">添加</button>
-                </form>
-                <div id="taskList" class="task-list">
-                    <p class="empty-hint">暂无任务</p>
-                </div>
-            </div>
-        </section>
-
-        <!-- Tab 6: 血压记录 -->
+        <!-- Tab 4: 血压记录 -->
         <section id="tab-bp" class="tab-page">
             <!-- 摘要卡：最近一次 + 近7天平均 -->
             <div class="card bp-summary-card">
@@ -401,6 +343,63 @@
                 <p class="food-source">血压分级依据《中国高血压防治指南》及透析患者常用参考值，仅供自我监测，具体以医生判断为准</p>
             </div>
         </section>
+        <!-- Tab 5: 钾/磷含量食物 -->
+        <section id="tab-foods" class="tab-page">
+            <div class="card">
+                <!-- 矿物质/营养素切换：钾 / 磷 / 优质蛋白 -->
+                <div class="mineral-switch" id="mineralSwitch">
+                    <button type="button" class="mineral-switch-btn active" data-mineral="k">钾含量</button>
+                    <button type="button" class="mineral-switch-btn" data-mineral="p">磷含量</button>
+                    <button type="button" class="mineral-switch-btn" data-mineral="pr">优质蛋白</button>
+                </div>
+                <h2 class="card-title" id="foodCardTitle">钾含量食物参考</h2>
+                <p class="food-intro" id="foodIntro">
+                    透析患者需控制钾摄入，每日建议 <strong>2-3g</strong> 钾。
+                </p>
+                <p class="food-disclaimer" id="foodDisclaimer">仅供参考，具体以实际食物钾含量为准</p>
+                <div class="food-search-box">
+                    <input type="text" id="foodSearch" placeholder="搜索食物名称，如：香蕉、菠菜..." autocomplete="off" inputmode="search" enterkeyhint="search">
+                    <span class="food-search-icon">🔍</span>
+                </div>
+                <div id="foodSearchResult" class="food-search-result"></div>
+                <div class="food-tabs" id="foodLevelTabs">
+                    <button class="food-tab-btn active" data-level="low">
+                        <span class="food-tab-icon green"></span><span class="food-tab-label">低钾</span>
+                        <small class="food-tab-range">&lt;150mg</small>
+                    </button>
+                    <button class="food-tab-btn" data-level="mid">
+                        <span class="food-tab-icon yellow"></span><span class="food-tab-label">中钾</span>
+                        <small class="food-tab-range">150-250mg</small>
+                    </button>
+                    <button class="food-tab-btn" data-level="high">
+                        <span class="food-tab-icon red"></span><span class="food-tab-label">高钾</span>
+                        <small class="food-tab-range">&gt;250mg</small>
+                    </button>
+                </div>
+                <div class="food-sort-bar">
+                    <button type="button" id="foodSortBtn" class="food-sort-btn" onclick="App.toggleFoodSortMode()">⇅ 调整类别顺序</button>
+                    <span class="food-sort-hint hidden" id="foodSortHint">按住右侧 ≡ 上下拖动分类，改完点「完成」</span>
+                </div>
+                <div id="foodList" class="food-list"></div>
+                <p class="food-source" id="foodSource">数据来源：《中国食物成分表·标准版（第6版）》+《成人慢性肾脏病食养指南（2024年版）》+ 武汉第三医院/复旦中山医院透析患者饮食指南</p>
+            </div>
+        </section>
+
+        <!-- Tab 6: 任务管理 -->
+        <section id="tab-tasks" class="tab-page">
+            <div class="card">
+                <h2 class="card-title">任务管理</h2>
+                <div id="taskDueBanner" class="task-due-banner hidden"></div>
+                <form id="taskForm" class="task-form">
+                    <input type="text" id="taskInput" placeholder="输入任务名称..." maxlength="50" required inputmode="text" enterkeyhint="done">
+                    <input type="date" id="taskDate" class="task-date-input" aria-label="任务日期">
+                    <button type="submit" class="btn-primary">添加</button>
+                </form>
+                <div id="taskList" class="task-list">
+                    <p class="empty-hint">暂无任务</p>
+                </div>
+            </div>
+        </section>
 
     </main>
 
@@ -424,6 +423,12 @@
             </svg>
             <span>指标</span>
         </button>
+        <button class="nav-btn" data-tab="bp">
+            <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
+                <path d="M20.57 14.86L22 13.43 20.57 12 17 15.57 8.43 7 12 3.43 10.57 2 9.14 3.43 7.71 2 5.57 4.14 4.14 2.71 2.71 4.14 4.14 5.57 2 7.71 3.43 9.14 2 10.57 3.43 12 7 8.43 15.57 17 12 20.57 13.43 22 14.86 20.57 16.29 22 18.43 19.86 19.86 21.29 21.29 19.86 19.86 18.43 22 16.29 20.57 14.86zM12 15.5c-1.93 0-3.5-1.57-3.5-3.5s1.57-3.5 3.5-3.5 3.5 1.57 3.5 3.5-1.57 3.5-3.5 3.5z"/>
+            </svg>
+            <span>血压</span>
+        </button>
         <button class="nav-btn" data-tab="foods">
             <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
                 <path d="M11 9H9V2H7v7H5V2H3v7c0 2.12 1.66 3.84 3.75 3.97V22h2.5v-9.03C11.34 12.84 13 11.12 13 9V2h-2v7zm5-3v8h2.5v8H21V2c-2.76 0-5 2.24-5 4z"/>
@@ -435,12 +440,6 @@
                 <path d="M19 3h-4.18C14.4 1.84 13.3 1 12 1s-2.4.84-2.82 2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 0c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm-2 14l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/>
             </svg>
             <span>任务</span>
-        </button>
-        <button class="nav-btn" data-tab="bp">
-            <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
-                <path d="M20.57 14.86L22 13.43 20.57 12 17 15.57 8.43 7 12 3.43 10.57 2 9.14 3.43 7.71 2 5.57 4.14 4.14 2.71 2.71 4.14 4.14 5.57 2 7.71 3.43 9.14 2 10.57 3.43 12 7 8.43 15.57 17 12 20.57 13.43 22 14.86 20.57 16.29 22 18.43 19.86 19.86 21.29 21.29 19.86 19.86 18.43 22 16.29 20.57 14.86zM12 15.5c-1.93 0-3.5-1.57-3.5-3.5s1.57-3.5 3.5-3.5 3.5 1.57 3.5 3.5-1.57 3.5-3.5 3.5z"/>
-            </svg>
-            <span>血压</span>
         </button>
     </nav>
 
