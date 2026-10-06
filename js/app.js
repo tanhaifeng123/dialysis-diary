@@ -79,6 +79,7 @@ var App = {
         TaskManager.init();
         StatsManager.init();
         MetricsManager.init();
+        BpManager.init();
 
         // 初始渲染食物
         this.renderFoods('low');
@@ -122,6 +123,10 @@ var App = {
                 // 如果切换到统计页，刷新图表
                 if (tabName === 'stats') {
                     setTimeout(() => StatsManager.refresh(), 100);
+                }
+                // 血压页：刷新图表（canvas 需要可见后才有正确尺寸）
+                if (tabName === 'bp') {
+                    setTimeout(() => BpManager.refresh(), 100);
                 }
             });
         });
