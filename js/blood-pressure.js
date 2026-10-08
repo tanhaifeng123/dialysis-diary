@@ -122,6 +122,8 @@ var BpManager = {
         var pulse = pulseRaw === '' ? null : parseInt(pulseRaw, 10);
         var date = document.getElementById('bpDate').value;
         var time = document.getElementById('bpTime').value;
+        var noteEl = document.getElementById('bpNote');
+        var note = noteEl ? noteEl.value.trim() : '';
 
         if (!sys || !dia) {
             App.showToast('请填写收缩压和舒张压');
@@ -149,6 +151,7 @@ var BpManager = {
             if (rec) {
                 rec.sys = sys; rec.dia = dia; rec.pulse = pulse;
                 rec.date = date; rec.time = time || '';
+                rec.note = note;
                 this.save();
                 App.showToast('血压记录已更新');
             }
@@ -158,6 +161,7 @@ var BpManager = {
                 id: 'bp' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7),
                 sys: sys, dia: dia, pulse: pulse,
                 date: date, time: time || '',
+                note: note,
                 createdAt: new Date().toISOString()
             });
             this.save();
@@ -180,6 +184,8 @@ var BpManager = {
         document.getElementById('bpPulse').value = (record.pulse !== null && record.pulse !== undefined) ? record.pulse : '';
         document.getElementById('bpDate').value = record.date;
         document.getElementById('bpTime').value = record.time || '';
+        var noteEl = document.getElementById('bpNote');
+        if (noteEl) noteEl.value = record.note || '';
 
         document.getElementById('bpFormTitle').innerHTML =
             '<span class="metric-toggle-icon" id="bpFormIcon">▼</span>修改血压记录';
@@ -201,7 +207,7 @@ var BpManager = {
     },
 
     clearForm() {
-        ['bpSys', 'bpDia', 'bpPulse'].forEach(function(id) {
+        ['bpSys', 'bpDia', 'bpPulse', 'bpNote'].forEach(function(id) {
             var el = document.getElementById(id);
             if (el) el.value = '';
         });
@@ -330,7 +336,9 @@ var BpManager = {
                 '</div>';
             dayRecs.forEach(function(r) {
                 var lv = self.levelOf(r.sys, r.dia);
-                html += '<div class="bp-item">' +
+                var noteHtml = r.note ? '<div class="bp-item-note">📝 ' + self.escapeHtml(r.note) + '</div>' : '';
+                html += '<div class="bp-item-wrap">' +
+                    '<div class="bp-item">' +
                     '<span class="bp-item-time">' + (r.time || '--:--') + '</span>' +
                     '<span class="bp-item-val"><b>' + r.sys + '</b>/<b>' + r.dia + '</b><small>mmHg</small>' +
                         (r.pulse !== null && r.pulse !== undefined ? '<span class="bp-item-pulse">❤ ' + r.pulse + '</span>' : '') +
@@ -340,7 +348,8 @@ var BpManager = {
                         '<button type="button" class="metric-op-btn" onclick="BpManager.edit(\'' + r.id + '\')" aria-label="编辑">✏️</button>' +
                         '<button type="button" class="metric-op-btn" onclick="BpManager.remove(\'' + r.id + '\')" aria-label="删除">🗑️</button>' +
                     '</span>' +
-                '</div>';
+                    '</div>' + noteHtml +
+                    '</div>';
             });
             html += '</div>';
         });
@@ -415,6 +424,13 @@ var BpManager = {
                 }
             }
         });
+    },
+
+    // HTML 转义（防注入）
+    escapeHtml(text) {
+        var div = document.createElement('div');
+        div.textContent = text == null ? '' : String(text);
+        return div.innerHTML;
     },
 
     // 切换到血压页时刷新图表（canvas 尺寸依赖可见性）
