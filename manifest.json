@@ -1,7 +1,7 @@
 {
     "name": "血液透析日记",
     "short_name": "透析日记",
-    "description": "记录每日透析数据、体重指标、减水量，提供统计图表和钾含量食物参考",
+    "description": "记录每日透析数据、体重指标、减水量、血压，提供统计图表和钾含量食物参考",
     "start_url": "./index.html",
     "display": "standalone",
     "orientation": "portrait",
