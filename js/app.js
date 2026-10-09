@@ -724,16 +724,9 @@ var App = {
     }
 };
 
-// 启动应用：交由访问门禁（Gate）驱动
-// 验证通过后 Gate 会调用 App.init()；未通过则停留在锁屏
+// 启动应用
 document.addEventListener('DOMContentLoaded', () => {
-    if (typeof Gate !== 'undefined' && Gate.init) {
-        Gate.bind();
-        Gate.init();
-    } else {
-        // 兜底：门禁脚本缺失时仍可正常使用
-        App.init();
-    }
+    App.init();
 });
 
 // ===== iOS 键盘弹收适配 =====
