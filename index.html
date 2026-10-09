@@ -16,6 +16,54 @@
     <script src="js/chart.umd.min.js" defer></script>
 </head>
 <body>
+    <!-- 访问门禁（密码锁 + 设备绑定） -->
+    <div id="gateOverlay" class="gate-overlay" style="display:none;">
+        <!-- 锁屏：输入密码 -->
+        <div id="gateLock" class="gate-box">
+            <div class="gate-icon">🔒</div>
+            <h2 class="gate-title">透析日记</h2>
+            <p class="gate-sub">此工作台为私人使用，请输入访问密码</p>
+            <input type="password" id="gatePass" class="gate-input" placeholder="访问密码" autocomplete="current-password" inputmode="text">
+            <label class="gate-remember">
+                <input type="checkbox" id="gateRemember" checked>
+                <span>记住本设备 30 天</span>
+            </label>
+            <button id="gateSubmit" class="gate-btn">进 入</button>
+            <p id="gateLockTip" class="gate-tip"></p>
+            <!-- 恢复码转移授权（设备满时显示） -->
+            <div id="gateRecovery" class="gate-recovery hidden">
+                <div class="gate-recovery-divider"></div>
+                <p class="gate-recovery-title">使用恢复码转移授权</p>
+                <input type="text" id="gateRecInput" class="gate-input gate-input-sm" placeholder="XXXX-XXXX-XXXX-XXXX" autocapitalize="characters" autocomplete="off">
+                <button id="gateRecBtn" class="gate-btn gate-btn-plain">恢复本设备</button>
+            </div>
+        </div>
+
+        <!-- 首次使用：设置密码 -->
+        <div id="gateSetup" class="gate-box hidden">
+            <div class="gate-icon">🔑</div>
+            <h2 class="gate-title">设置访问密码</h2>
+            <p class="gate-sub">首次使用，请设置一个只有你知道的密码</p>
+            <input type="password" id="gateNewPass" class="gate-input" placeholder="设置密码（至少 4 位）" autocomplete="new-password">
+            <input type="password" id="gateNewPass2" class="gate-input" placeholder="再次输入确认" autocomplete="new-password">
+            <button id="gateSetupBtn" class="gate-btn">确 定</button>
+            <p id="gateSetupTip" class="gate-tip"></p>
+            <p class="gate-note">密码仅保存在本机，不上传任何服务器</p>
+        </div>
+
+        <!-- 设置成功：展示恢复码（只显示这一次） -->
+        <div id="gateDone" class="gate-box hidden">
+            <div class="gate-icon">🛡️</div>
+            <h2 class="gate-title">设置成功</h2>
+            <p class="gate-sub">这是你的<b>恢复码</b>，换新手机时凭它转移授权。<br><b style="color:var(--danger)">只显示这一次，请立即截图保存！</b></p>
+            <div id="gateRecCode" class="gate-rec-code"></div>
+            <button id="gateDoneBtn" class="gate-btn">我已保存，进入</button>
+            <p class="gate-note">建议截图后存到相册的加密相簿或备忘录</p>
+        </div>
+
+        <div id="gateApp" class="hidden"></div>
+    </div>
+
     <!-- 顶部标题栏 -->
     <header class="app-header">
         <h1>血液透析日记</h1>
@@ -459,6 +507,7 @@
     <script src="js/metrics.js" defer></script>
     <script src="js/records.js" defer></script>
     <script src="js/stats.js" defer></script>
+    <script src="js/gate.js" defer></script>
     <script src="js/app.js" defer></script>
 </body>
 </html>
