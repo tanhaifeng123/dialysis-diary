@@ -12,10 +12,12 @@ var TaskManager = {
         this.setDefaultDate();
     },
 
-    // 日期默认为今天
+    // 日期/时间默认为今天 09:00
     setDefaultDate() {
         var input = document.getElementById('taskDate');
         if (input && !input.value) input.value = this.todayStr();
+        var timeInput = document.getElementById('taskTime');
+        if (timeInput && !timeInput.value) timeInput.value = this.defaultTime();
     },
 
     // 今天的 YYYY-MM-DD
@@ -41,11 +43,12 @@ var TaskManager = {
     },
 
     // 添加任务
-    add(text, date) {
+    add(text, date, time) {
         const task = {
             id: 't' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7),
             text: text.trim(),
             date: date || this.todayStr(),
+            time: time || '',
             done: false,
             createdAt: new Date().toISOString()
         };
@@ -93,10 +96,10 @@ var TaskManager = {
                 <div class="task-main">
                     <span class="task-text">${this.escapeHtml(task.text)}</span>
                     <div class="task-meta">
-                        <button type="button" class="task-date${this.dateClass(task.date)}" onclick="TaskManager.editDate('${task.id}')" aria-label="点击修改日期">
-                            ${task.date ? self.formatDate(task.date) : '设置日期'}
+                        <button type="button" class="task-date${this.dateClass(task.date)}" onclick="TaskManager.editDate('${task.id}')" aria-label="点击修改日期和时间">
+                            ${task.date ? self.formatDate(task.date) : '设置日期'}${task.time ? '<span class="task-time-chip">' + task.time + '</span>' : ''}
                         </button>
-                        <button type="button" class="task-cal-btn" onclick="TaskManager.addToCalendar('${task.id}')" aria-label="加到手机日历提醒" title="加到手机日历">⏰ 提醒</button>
+                        <button type="button" class="task-cal-btn" onclick="TaskManager.addToCalendar('${task.id}')" aria-label="加到手机日历提醒" title="加到手机日历">⏰ ${task.time ? self.fmtTimeShort(task.time) : '提醒'}</button>
                     </div>
                 </div>
                 <button class="task-delete" onclick="TaskManager.remove('${task.id}')" aria-label="删除任务">×</button>
@@ -104,14 +107,25 @@ var TaskManager = {
         `).join('');
     },
 
-    // 点击日期 → 就地展开日期选择器 + 确定/取消（不会自动收起）
+    // 时间缩写显示（09:00 -> 9点）
+    fmtTimeShort(t) {
+        if (!t) return '';
+        var parts = String(t).split(':');
+        var h = parseInt(parts[0], 10);
+        var m = parseInt(parts[1], 10);
+        if (isNaN(h)) return t;
+        if (!m) return h + '点';
+        return h + ':' + (m < 10 ? '0' + m : m);
+    },
+
+    // 点击日期 → 就地展开日期 + 时间选择器 + 确定/取消（不会自动收起）
     editDate(id) {
         var task = this.tasks.find(t => t.id === id);
         if (!task) return;
 
         // 已有一个编辑器在显示则先清理
-        var oldInput = document.querySelector('.task-date-edit');
-        if (oldInput) oldInput.remove();
+        var oldEditor = document.querySelector('.task-date-editor');
+        if (oldEditor) oldEditor.remove();
 
         var btn = document.querySelector('.task-date[onclick*="' + id + '"]');
         if (!btn) return;
@@ -123,6 +137,12 @@ var TaskManager = {
         input.type = 'date';
         input.className = 'task-date-edit';
         input.value = task.date || this.todayStr();
+
+        var timeInput = document.createElement('input');
+        timeInput.type = 'time';
+        timeInput.className = 'task-time-edit';
+        timeInput.step = '300';
+        timeInput.value = task.time || '09:00';
 
         var ok = document.createElement('button');
         ok.type = 'button';
@@ -138,10 +158,13 @@ var TaskManager = {
         var close = function(save) {
             if (save) {
                 var v = input.value;
-                if (v && v !== task.date) {
-                    task.date = v;
+                var t = timeInput.value;
+                var changed = false;
+                if (v && v !== task.date) { task.date = v; changed = true; }
+                if (t !== (task.time || '')) { task.time = t; changed = true; }
+                if (changed) {
                     self.save();
-                    App.showToast('日期已改为 ' + self.formatDate(v));
+                    App.showToast('已更新为 ' + (v ? self.formatDate(v) : '') + (t ? ' ' + t : ''));
                 }
             }
             self.render();
@@ -151,6 +174,7 @@ var TaskManager = {
         cancel.addEventListener('click', function(e) { e.stopPropagation(); close(false); });
 
         box.appendChild(input);
+        box.appendChild(timeInput);
         box.appendChild(ok);
         box.appendChild(cancel);
         btn.parentNode.insertBefore(box, btn);
@@ -170,9 +194,10 @@ var TaskManager = {
         if (!task.date) { App.showToast('请先设置日期'); return; }
 
         var dt = task.date.replace(/-/g, '');
-        // 默认提醒时间：当天 09:00
-        var startT = dt + 'T090000';
-        var endT = dt + 'T093000';
+        // 提醒时间：使用任务设定的时刻，未设置则默认 09:00
+        var tm = (task.time || '09:00').replace(':', '');
+        var startT = dt + 'T' + tm + '00';
+        var endT = dt + 'T' + tm + '30';
         var stamp = this.icsStamp();
         var uid = 'dialysis-task-' + task.id + '@dialysis-diary';
 
@@ -271,14 +296,21 @@ var TaskManager = {
             e.preventDefault();
             const input = document.getElementById('taskInput');
             const dateInput = document.getElementById('taskDate');
+            const timeInput = document.getElementById('taskTime');
             const text = input.value.trim();
             if (text) {
-                this.add(text, dateInput ? dateInput.value : '');
+                this.add(text, dateInput ? dateInput.value : '', timeInput ? timeInput.value : '');
                 input.value = '';
                 if (dateInput) dateInput.value = this.todayStr(); // 重置回今天
+                if (timeInput) timeInput.value = this.defaultTime(); // 重置回默认时间
                 App.showToast('任务已添加');
             }
         });
+    },
+
+    // 默认提醒时间：当前时间之后的整点，简化处理取 09:00
+    defaultTime() {
+        return '09:00';
     },
 
     // HTML 转义
