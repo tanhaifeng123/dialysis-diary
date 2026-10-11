@@ -80,6 +80,7 @@ var App = {
         StatsManager.init();
         MetricsManager.init();
         BpManager.init();
+        if (typeof Backup !== 'undefined') Backup.init();
 
         // 初始渲染食物
         this.renderFoods('low');
