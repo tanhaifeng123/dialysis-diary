@@ -724,9 +724,15 @@ var App = {
     }
 };
 
-// 启动应用
+// 启动应用：先经授权激活，通过后由 Activation 调用 App.init()
 document.addEventListener('DOMContentLoaded', () => {
-    App.init();
+    if (typeof Activation !== 'undefined' && Activation.init) {
+        Activation.bind();
+        Activation.init();
+    } else {
+        // 兜底：授权脚本缺失时仍可正常使用
+        App.init();
+    }
 });
 
 // ===== iOS 键盘弹收适配 =====
