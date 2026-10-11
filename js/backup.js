@@ -18,12 +18,33 @@ var Backup = {
     ],
 
     init() {
-        var btn = document.getElementById('backupBtn');
-        var rbtn = document.getElementById('restoreBtn');
+        // 用事件委托 + 直接绑定双保险，避免时机问题
+        var self = this;
+
+        document.addEventListener('click', function(e) {
+            var t = e.target;
+            // 兼容点到按钮内部文字节点的情况
+            if (t && t.closest) {
+                if (t.closest('#backupBtn')) { e.preventDefault(); self.exportAll(); return; }
+                if (t.closest('#restoreBtn')) { e.preventDefault(); self.openFilePicker(); return; }
+            }
+        });
+
         var file = document.getElementById('restoreFile');
-        if (btn) btn.addEventListener('click', () => this.exportAll());
-        if (rbtn) rbtn.addEventListener('click', () => { if (file) file.click(); });
-        if (file) file.addEventListener('change', (e) => this.importFile(e));
+        if (file) {
+            file.addEventListener('change', function(ev) { self.importFile(ev); });
+        }
+    },
+
+    // 触发文件选择
+    openFilePicker() {
+        var file = document.getElementById('restoreFile');
+        if (file) {
+            file.value = '';
+            file.click();
+        } else {
+            this.setStatus('❌ 未找到文件选择器', true);
+        }
     },
 
     // ===== 导出 =====
