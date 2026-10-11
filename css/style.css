@@ -2686,3 +2686,67 @@ body {
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
 }
+
+/* ===== 数据备份卡片 ===== */
+.backup-card {
+    margin-top: 12px;
+}
+
+.backup-hint {
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    margin-bottom: 14px;
+}
+
+.backup-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.btn-backup,
+.btn-restore {
+    flex: 1 1 0;
+    min-width: 0;
+    padding: 12px 8px;
+    font-size: 14px;
+    font-weight: 600;
+    font-family: inherit;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: opacity .18s, transform .12s;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.btn-backup {
+    color: #fff;
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    border: none;
+}
+
+.btn-restore {
+    color: var(--primary);
+    background: #fff;
+    border: 1.5px solid var(--primary);
+}
+
+.btn-backup:active,
+.btn-restore:active {
+    transform: scale(.98);
+}
+
+.backup-status {
+    min-height: 18px;
+    margin-top: 12px;
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+}
+
+.backup-status-ok {
+    color: var(--success);
+}
+
+.backup-status-err {
+    color: var(--danger);
+}
