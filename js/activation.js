@@ -20,7 +20,7 @@ var Activation = {
     // 发码密钥：与 issuer.html 中一致。更换即全部激活失效。
     SECRET: 'HF-DIALYSIS-SECRET-2026-X7Q',
     // 主人码：直接进入（主人自己用）
-    OWNER_CODE: 'OWNER-HF-2026-DIALYSIS',
+    OWNER_CODE: 'xyyhhtl2026',
 
     KEYS: {
         DEV_ID: 'act_dev_id',    // 本机唯一随机 ID（首次打开生成，永久保存）
