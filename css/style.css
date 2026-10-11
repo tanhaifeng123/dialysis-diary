@@ -2531,3 +2531,158 @@ body {
     line-height: 1.45;
     word-break: break-word;
 }
+
+/* ===== 授权激活（一码一设备） ===== */
+.act-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background: linear-gradient(160deg, #1A2332 0%, #1976D2 100%);
+    transition: opacity .3s ease;
+}
+.act-overlay.act-hidden { opacity: 0; pointer-events: none; }
+
+.act-box {
+    width: 100%;
+    max-width: 350px;
+    background: #FFFFFF;
+    border-radius: 20px;
+    padding: 30px 24px 24px;
+    box-shadow: 0 16px 48px rgba(0, 0, 0, .28);
+    text-align: center;
+    animation: actPop .32s cubic-bezier(.2, .9, .3, 1.2);
+    max-height: 88vh;
+    overflow-y: auto;
+}
+@keyframes actPop {
+    from { opacity: 0; transform: translateY(14px) scale(.97); }
+    to { opacity: 1; transform: none; }
+}
+.act-shake { animation: actShake .4s; }
+@keyframes actShake {
+    0%, 100% { transform: translateX(0); }
+    20%, 60% { transform: translateX(-8px); }
+    40%, 80% { transform: translateX(8px); }
+}
+
+.act-icon { font-size: 40px; line-height: 1; margin-bottom: 12px; }
+.act-title { font-size: 19px; font-weight: 700; color: var(--text); margin-bottom: 6px; }
+.act-sub { font-size: 13px; color: var(--text-secondary); margin-bottom: 20px; line-height: 1.6; }
+.act-label { font-size: 12.5px; color: var(--text-secondary); text-align: left; margin-bottom: 8px; }
+
+.act-input {
+    display: block;
+    width: 100%;
+    padding: 14px 15px;
+    margin-bottom: 12px;
+    font-size: 17px;
+    letter-spacing: 2px;
+    text-align: center;
+    font-family: 'SF Mono', Menlo, Consolas, monospace;
+    color: var(--text);
+    background: #F5F8FB;
+    border: 1.5px solid var(--border);
+    border-radius: 12px;
+    outline: none;
+    transition: border-color .18s, background .18s;
+    -webkit-appearance: none;
+    appearance: none;
+}
+.act-input:focus { border-color: var(--primary); background: #FFFFFF; }
+
+.act-btn {
+    display: block;
+    width: 100%;
+    padding: 13px;
+    margin-top: 10px;
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    font-family: inherit;
+    color: #FFFFFF;
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: opacity .18s, transform .12s;
+    -webkit-tap-highlight-color: transparent;
+}
+.act-btn:active { transform: scale(.98); }
+
+.act-btn-plain {
+    background: #FFFFFF;
+    color: var(--primary);
+    border: 1.5px solid var(--primary);
+    letter-spacing: 1px;
+}
+
+.act-tip { min-height: 18px; margin-top: 12px; font-size: 13px; color: var(--text-secondary); }
+.act-tip-err { color: var(--danger); }
+.act-tip-ok { color: var(--success); }
+
+.act-code-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 12px;
+    max-height: 190px;
+    overflow-y: auto;
+    padding: 4px;
+}
+.act-code-chip {
+    font-family: 'SF Mono', Menlo, Consolas, monospace;
+    font-size: 12.5px;
+    background: #EDF4FC;
+    color: var(--primary-dark);
+    border: 1px solid #CFE0F5;
+    border-radius: 7px;
+    padding: 5px 8px;
+    white-space: nowrap;
+}
+.act-empty { font-size: 13px; color: var(--text-light); padding: 8px; width: 100%; }
+
+.act-copy-area {
+    width: 100%;
+    font-family: 'SF Mono', Menlo, Consolas, monospace;
+    font-size: 13px;
+    padding: 10px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    margin-bottom: 10px;
+    resize: vertical;
+    color: var(--text);
+    background: #F5F8FB;
+}
+
+/* 激活页：申请码展示 */
+.act-req-code {
+    font-family: 'SF Mono', Menlo, Consolas, monospace;
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    color: var(--primary-dark);
+    background: #EDF4FC;
+    border: 1.5px dashed var(--primary-light);
+    border-radius: 12px;
+    padding: 13px 10px;
+    margin-bottom: 8px;
+    user-select: all;
+    -webkit-user-select: all;
+}
+
+.act-copy-btn {
+    display: inline-block;
+    background: none;
+    border: none;
+    color: var(--primary);
+    font-size: 13.5px;
+    font-family: inherit;
+    padding: 4px 10px;
+    margin-bottom: 14px;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+}
