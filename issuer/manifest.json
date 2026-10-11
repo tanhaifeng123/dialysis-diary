@@ -1,0 +1,25 @@
+{
+    "name": "发码器",
+    "short_name": "发码器",
+    "description": "透析日记管理员专用：由设备申请码生成专属激活码",
+    "start_url": "./issuer.html",
+    "scope": "./",
+    "display": "standalone",
+    "orientation": "portrait",
+    "background_color": "#1A2332",
+    "theme_color": "#1565C0",
+    "icons": [
+        {
+            "src": "icon-key-192.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "any maskable"
+        },
+        {
+            "src": "icon-key-512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any maskable"
+        }
+    ]
+}
