@@ -25,7 +25,8 @@ var Activation = {
     KEYS: {
         DEV_ID: 'act_dev_id',    // 本机唯一随机 ID（首次打开生成，永久保存）
         MY_FP: 'act_my_fp',      // 激活时的申请码快照
-        OK: 'act_ok'             // 本机已激活标记
+        OK: 'act_ok',            // 本机已激活标记
+        OWNER_DEV: 'act_owner_dev' // 本机是否被标记为「主人设备」
     },
 
     inited: false,
@@ -162,14 +163,15 @@ var Activation = {
 
         if (!input) { this.setTip('请输入管理员给你的激活码', true); return; }
 
-        // 主人码直通
+        // 主人码直通：同时把这台设备标记为「主人设备」
         if (input === this.normalize(this.OWNER_CODE)) {
             const req0 = await this.requestCode();
             this.ensureDeviceId();
             this.lsSet(this.KEYS.OK, true);
             this.lsSet(this.KEYS.MY_FP, req0);
-            this.setTip('管理员身份确认，正在进入…', false);
-            setTimeout(() => this.unlock(), 600);
+            this.lsSet(this.KEYS.OWNER_DEV, true);   // 标记为管理员设备
+            this.setTip('管理员身份确认，本机已设为管理员设备，正在进入…', false);
+            setTimeout(() => this.unlock(), 900);
             return;
         }
 
