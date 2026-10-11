@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#1565C0">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="发码器">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-key-192.png">
+<link rel="icon" type="image/png" href="icon-key-192.png">
+<title>发码器 · 管理员专用</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: linear-gradient(160deg, #1A2332 0%, #1565C0 100%);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    -webkit-tap-highlight-color: transparent;
+}
+.card {
+    width: 100%;
+    max-width: 390px;
+    background: #fff;
+    border-radius: 20px;
+    padding: 30px 24px;
+    box-shadow: 0 16px 48px rgba(0,0,0,.28);
+    text-align: center;
+}
+h1 { font-size: 20px; color: #1A2332; margin-bottom: 6px; }
+.sub { font-size: 13px; color: #607D8B; margin-bottom: 22px; line-height: 1.6; }
+label { display: block; font-size: 13px; color: #607D8B; text-align: left; margin-bottom: 6px; }
+input {
+    width: 100%;
+    padding: 14px;
+    font-size: 17px;
+    letter-spacing: 2px;
+    text-align: center;
+    font-family: 'SF Mono', Menlo, Consolas, monospace;
+    border: 1.5px solid #E0E7EE;
+    border-radius: 12px;
+    background: #F5F8FB;
+    outline: none;
+    margin-bottom: 14px;
+}
+input:focus { border-color: #1976D2; background: #fff; }
+button {
+    width: 100%;
+    padding: 13px;
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    color: #fff;
+    background: linear-gradient(135deg, #1976D2, #1565C0);
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+}
+button:active { transform: scale(.98); }
+button.plain {
+    background: #fff;
+    color: #1976D2;
+    border: 1.5px solid #1976D2;
+    margin-top: 10px;
+    letter-spacing: 1px;
+}
+.result { display: none; margin-top: 18px; }
+.code {
+    font-family: 'SF Mono', Menlo, Consolas, monospace;
+    font-size: 24px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: #1565C0;
+    background: #EDF4FC;
+    border: 1.5px dashed #42A5F5;
+    border-radius: 12px;
+    padding: 16px 10px;
+    margin-bottom: 12px;
+    user-select: all;
+    -webkit-user-select: all;
+}
+.tip { font-size: 12px; color: #90A4AE; margin-top: 14px; line-height: 1.6; }
+.err { color: #E53935; font-size: 13px; margin-top: 10px; min-height: 18px; }
+.install {
+    display: none;
+    margin-top: 16px;
+    font-size: 12.5px;
+    color: #1565C0;
+    background: #EDF4FC;
+    border: 1px dashed #42A5F5;
+    border-radius: 10px;
+    padding: 10px;
+    line-height: 1.6;
+}
+.hidden { display: none !important; }
+/* 锁屏 */
+#lockCard .lock-icon { font-size: 42px; margin-bottom: 10px; }
+</style>
+</head>
+<body>
+
+<!-- 主人码锁 -->
+<div class="card" id="lockCard">
+    <div class="lock-icon">🔒</div>
+    <h1>发码器</h1>
+    <p class="sub">管理员专用，请输入主人码</p>
+    <input type="password" id="lockPass" placeholder="主人码" autocomplete="current-password">
+    <button id="lockBtn">解 锁</button>
+    <p class="err" id="lockErr"></p>
+</div>
+
+<!-- 发码主界面 -->
+<div class="card hidden" id="mainCard">
+    <h1>🔑 发码器</h1>
+    <p class="sub">对方把他设备上的「申请码」发给你，<br>粘贴到下面，生成只对他设备有效的激活码。</p>
+    <label>对方的申请码</label>
+    <input id="req" placeholder="XXXX-XXXX-XXXX" autocapitalize="characters" autocomplete="off" spellcheck="false">
+    <button id="genBtn">生成激活码</button>
+    <p class="err" id="err"></p>
+    <div class="result" id="result">
+        <label>发给对方的激活码</label>
+        <div class="code" id="out"></div>
+        <button class="plain" id="copyBtn">📋 复制激活码</button>
+    </div>
+    <div class="install" id="installTip">
+        📲 想加到桌面？手机浏览器菜单里点「添加到主屏幕」即可
+    </div>
+    <p class="tip">⚠️ 此页面含发码能力，请勿将地址与主人码告知他人</p>
+</div>
+
+<script>
+// ===== 配置：与工作台 activation.js 保持一致 =====
+var SECRET = 'HF-DIALYSIS-SECRET-2026-X7Q';
+var OWNER_CODE = 'xyyhhtl2026';
+var LOCK_KEY = 'issuer_unlocked';
+
+function norm(s) { return (s || '').toUpperCase().replace(/[^A-Z0-9]/g, ''); }
+function fmt12(hex) { return hex.slice(0, 12).toUpperCase().replace(/(.{4})/g, '$1-').replace(/-$/, ''); }
+async function sha256(str) {
+    var buf = new TextEncoder().encode(str);
+    var d = await crypto.subtle.digest('SHA-256', buf);
+    return Array.from(new Uint8Array(d)).map(function(b){ return b.toString(16).padStart(2, '0'); }).join('');
+}
+async function derive(req) { return fmt12(await sha256(SECRET + '|' + norm(req))); }
+
+// ===== 锁 =====
+function unlockUI() {
+    document.getElementById('lockCard').classList.add('hidden');
+    document.getElementById('mainCard').classList.remove('hidden');
+}
+async function tryLock() {
+    var v = document.getElementById('lockPass').value;
+    if (norm(v) === norm(OWNER_CODE)) {
+        sessionStorage.setItem(LOCK_KEY, '1');
+        unlockUI();
+    } else {
+        document.getElementById('lockErr').textContent = '主人码不正确';
+        document.getElementById('lockPass').value = '';
+    }
+}
+
+// ===== 发码 =====
+async function gen() {
+    var req = norm(document.getElementById('req').value);
+    var err = document.getElementById('err');
+    var res = document.getElementById('result');
+    if (req.length < 8) { err.textContent = '申请码看起来不对，应为 12 位'; res.style.display = 'none'; return; }
+    err.textContent = '';
+    document.getElementById('out').textContent = await derive(req);
+    res.style.display = 'block';
+}
+async function copyOut() {
+    var t = document.getElementById('out').textContent;
+    try {
+        await navigator.clipboard.writeText(t);
+        var b = document.getElementById('copyBtn');
+        b.textContent = '✅ 已复制';
+        setTimeout(function(){ b.textContent = '📋 复制激活码'; }, 1500);
+    } catch (e) {}
+}
+
+// ===== 启动 =====
+document.getElementById('lockBtn').addEventListener('click', tryLock);
+document.getElementById('lockPass').addEventListener('keydown', function(e){ if (e.key === 'Enter') tryLock(); });
+document.getElementById('genBtn').addEventListener('click', gen);
+document.getElementById('req').addEventListener('keydown', function(e){ if (e.key === 'Enter') gen(); });
+document.getElementById('copyBtn').addEventListener('click', copyOut);
+
+// 已解锁（本次会话）
+if (sessionStorage.getItem(LOCK_KEY) === '1') unlockUI();
+
+// PWA
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function() {
+        navigator.serviceWorker.register('sw.js').catch(function(){});
+    });
+}
+</script>
+</body>
+</html>
