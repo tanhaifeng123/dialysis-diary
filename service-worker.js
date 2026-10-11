@@ -1,6 +1,6 @@
 // Service Worker - 离线缓存
 
-const CACHE_NAME = 'dialysis-workbench-v53';
+const CACHE_NAME = 'dialysis-workbench-v54';
 const ASSETS = [
     './',
     './index.html',
@@ -45,17 +45,32 @@ self.addEventListener('activate', (event) => {
     );
 });
 
-// 请求拦截：缓存优先，网络回退
+// 请求拦截
+// - 页面导航(HTML)：网络优先，保证每次拿到最新结构；离线回退缓存
+// - 其他静态资源：缓存优先，保证离线可用与加载速度
 self.addEventListener('fetch', (event) => {
-    // 只处理 GET 请求
     if (event.request.method !== 'GET') return;
 
-    // 本地资源走缓存优先
+    var isDoc = event.request.destination === 'document' ||
+                (event.request.headers.get('accept') || '').indexOf('text/html') !== -1;
+
+    if (isDoc) {
+        event.respondWith(
+            fetch(event.request).then(response => {
+                if (response && response.status === 200 && response.type === 'basic') {
+                    var clone = response.clone();
+                    caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
+                }
+                return response;
+            }).catch(() => caches.match(event.request).then(c => c || caches.match('./index.html')))
+        );
+        return;
+    }
+
     event.respondWith(
         caches.match(event.request).then(cached => {
             if (cached) return cached;
             return fetch(event.request).then(response => {
-                // 缓存新资源
                 if (response.status === 200 && response.type === 'basic') {
                     var responseClone = response.clone();
                     caches.open(CACHE_NAME).then(cache => {
@@ -64,7 +79,6 @@ self.addEventListener('fetch', (event) => {
                 }
                 return response;
             }).catch(() => {
-                // 离线回退
                 if (event.request.destination === 'document') {
                     return caches.match('./index.html');
                 }
