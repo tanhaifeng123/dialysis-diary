@@ -152,6 +152,18 @@
                     <p class="empty-hint">暂无记录，开始添加第一条吧</p>
                 </div>
             </div>
+
+            <!-- 数据备份与恢复 -->
+            <div class="card backup-card">
+                <h2 class="card-title">💾 数据备份</h2>
+                <p class="backup-hint">建议定期导出备份。换手机或清理浏览器数据时，可用备份文件恢复全部记录。</p>
+                <div class="backup-actions">
+                    <button type="button" id="backupBtn" class="btn-backup">⬇️ 导出全部数据</button>
+                    <button type="button" id="restoreBtn" class="btn-restore">⬆️ 恢复数据</button>
+                </div>
+                <input type="file" id="restoreFile" accept=".json,application/json" style="display:none">
+                <p class="backup-status" id="backupStatus"></p>
+            </div>
         </section>
 
         <!-- Tab 2: 统计 -->
@@ -475,6 +487,7 @@
     <script src="js/metrics.js" defer></script>
     <script src="js/records.js" defer></script>
     <script src="js/stats.js" defer></script>
+    <script src="js/backup.js" defer></script>
     <script src="js/activation.js" defer></script>
     <script src="js/app.js" defer></script>
 </body>
