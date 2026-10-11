@@ -119,6 +119,7 @@ button.plain {
 <!-- 发码主界面 -->
 <div class="card hidden" id="mainCard">
     <h1>🔑 发码器</h1>
+    <p class="sub" id="ownerBadge" style="display:none;color:#43A047;font-weight:600;">👑 主人设备 · 已免密进入</p>
     <p class="sub">对方把他设备上的「申请码」发给你，<br>粘贴到下面，生成只对他设备有效的激活码。</p>
     <label>对方的申请码</label>
     <input id="req" placeholder="XXXX-XXXX-XXXX" autocapitalize="characters" autocomplete="off" spellcheck="false">
@@ -140,6 +141,12 @@ button.plain {
 var SECRET = 'HF-DIALYSIS-SECRET-2026-X7Q';
 var OWNER_CODE = 'xyyhhtl2026';
 var LOCK_KEY = 'issuer_unlocked';
+var OWNER_DEV_KEY = 'act_owner_dev';  // 工作台标记的「主人设备」（同域名 localStorage 共享）
+
+// 是否本机已被工作台标记为主人设备
+function isOwnerDevice() {
+    try { return localStorage.getItem(OWNER_DEV_KEY) === 'true'; } catch (e) { return false; }
+}
 
 function norm(s) { return (s || '').toUpperCase().replace(/[^A-Z0-9]/g, ''); }
 function fmt12(hex) { return hex.slice(0, 12).toUpperCase().replace(/(.{4})/g, '$1-').replace(/-$/, ''); }
@@ -154,11 +161,16 @@ async function derive(req) { return fmt12(await sha256(SECRET + '|' + norm(req))
 function unlockUI() {
     document.getElementById('lockCard').classList.add('hidden');
     document.getElementById('mainCard').classList.remove('hidden');
+    if (isOwnerDevice()) {
+        document.getElementById('ownerBadge').style.display = 'block';
+    }
 }
 async function tryLock() {
     var v = document.getElementById('lockPass').value;
     if (norm(v) === norm(OWNER_CODE)) {
         sessionStorage.setItem(LOCK_KEY, '1');
+        // 输对主人码时，顺手把本机也标记为主人设备（对应工作台的标记）
+        try { localStorage.setItem(OWNER_DEV_KEY, 'true'); } catch (e) {}
         unlockUI();
     } else {
         document.getElementById('lockErr').textContent = '主人码不正确';
@@ -193,8 +205,11 @@ document.getElementById('genBtn').addEventListener('click', gen);
 document.getElementById('req').addEventListener('keydown', function(e){ if (e.key === 'Enter') gen(); });
 document.getElementById('copyBtn').addEventListener('click', copyOut);
 
-// 已解锁（本次会话）
-if (sessionStorage.getItem(LOCK_KEY) === '1') unlockUI();
+// 已解锁（本次会话）或本机是主人设备 → 直接进入
+if (sessionStorage.getItem(LOCK_KEY) === '1' || isOwnerDevice()) {
+    sessionStorage.setItem(LOCK_KEY, '1');
+    unlockUI();
+}
 
 // PWA
 if ('serviceWorker' in navigator) {
