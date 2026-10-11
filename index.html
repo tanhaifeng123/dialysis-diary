@@ -16,6 +16,22 @@
     <script src="js/chart.umd.min.js" defer></script>
 </head>
 <body>
+    <!-- 授权激活（一码一设备） -->
+    <div id="actOverlay" class="act-overlay" style="display:none;">
+        <div id="actBox" class="act-box">
+            <div class="act-icon">🔐</div>
+            <h2 class="act-title">透析日记</h2>
+            <p class="act-sub">此工作台需要授权才能使用</p>
+            <p class="act-label">① 这是你的设备申请码（发给管理员）</p>
+            <div id="actReqCode" class="act-req-code">…</div>
+            <button id="actCopyReq" class="act-copy-btn">📋 复制申请码</button>
+            <p class="act-label">② 输入管理员给你的激活码</p>
+            <input type="text" id="actInput" class="act-input" placeholder="XXXX-XXXX-XXXX" autocapitalize="characters" autocomplete="off" spellcheck="false">
+            <button id="actSubmit" class="act-btn">激 活</button>
+            <p id="actTip" class="act-tip"></p>
+        </div>
+    </div>
+
     <!-- 顶部标题栏 -->
     <header class="app-header">
         <h1>血液透析日记</h1>
@@ -459,6 +475,7 @@
     <script src="js/metrics.js" defer></script>
     <script src="js/records.js" defer></script>
     <script src="js/stats.js" defer></script>
+    <script src="js/activation.js" defer></script>
     <script src="js/app.js" defer></script>
 </body>
 </html>
