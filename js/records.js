@@ -608,6 +608,11 @@ var RecordManager = {
         var self = this;
         var postDisplay = r.postWeight ? (r.postWeight + ' kg') : '<span class="data-pending">待填</span>';
 
+        // 净脱：透前 - 透后（需两者都有）
+        var netDisplay = (r.postWeight && r.preWeight)
+            ? (Math.round((r.preWeight - r.postWeight) * 100) / 100).toFixed(2) + ' kg'
+            : '<span class="data-pending">—</span>';
+
         // 使用记录保存时存储的涨水率；如果没有则实时补算并存储
         var gainRate = (r.gainRate !== undefined && r.gainRate !== null) ? r.gainRate : null;
         if (gainRate === null && self.dryWeight) {
@@ -675,6 +680,10 @@ var RecordManager = {
                 '<div class="record-data-item">' +
                     '<span class="record-data-label">超滤量</span>' +
                     '<span class="record-data-value uf">' + ufDisplay + '</span>' +
+                '</div>' +
+                '<div class="record-data-item">' +
+                    '<span class="record-data-label">净脱</span>' +
+                    '<span class="record-data-value">' + netDisplay + '</span>' +
                 '</div>' +
             '</div>' +
             symptomHtml +
