@@ -268,6 +268,53 @@ body {
 .gain-rate-hint.warning { color: var(--warning); }
 .gain-rate-hint.danger { color: var(--danger); }
 
+/* 超滤量自动计算显示框 */
+.uf-auto-box {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    padding: 10px 14px;
+    background: linear-gradient(135deg, #E3F2FD 0%, #E8F5E9 100%);
+    border: 1px solid #BBDEFB;
+    border-radius: 10px;
+    min-height: 44px;
+}
+
+.uf-value {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--primary);
+    letter-spacing: 0.3px;
+    font-variant-numeric: tabular-nums;
+}
+
+.uf-value.uf-value-normal { color: var(--success); }
+.uf-value.uf-value-warning { color: var(--warning); }
+.uf-value.uf-value-danger { color: var(--danger); }
+
+.uf-unit {
+    font-size: 13px;
+    color: var(--text-light);
+    font-weight: 500;
+}
+
+.uf-hint {
+    font-size: 12px;
+    color: var(--text-light);
+    margin: -6px 0 10px 2px;
+    min-height: 16px;
+    line-height: 1.4;
+}
+
+.uf-hint-ok { color: var(--success); }
+.uf-hint-normal { color: var(--success); }
+.uf-hint-warning { color: var(--warning); }
+.uf-hint-danger { color: var(--danger); }
+.uf-hint-warn { color: var(--warning); }
+
+/* 记录卡片中的超滤量数值 */
+.record-data-value.uf { color: #0277BD; font-weight: 600; }
+
 /* 记录列表中的涨水率标签 */
 .gain-rate-tag {
     display: inline-block;
