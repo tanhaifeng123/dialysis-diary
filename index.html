@@ -122,10 +122,6 @@
                             <input type="number" id="postWeight" step="0.1" min="20" max="200" placeholder="下机后填写" inputmode="decimal" enterkeyhint="next">
                         </div>
                         <div class="form-row">
-                            <label for="fluidRemoved">减水量 (mL) <small style="font-weight:400;color:var(--text-light)">选填，下机后补填</small></label>
-                            <input type="number" id="fluidRemoved" step="50" min="0" max="5000" placeholder="下机后填写" inputmode="numeric" enterkeyhint="next">
-                        </div>
-                        <div class="form-row">
                             <label>透析症状 <small style="font-weight:400;color:var(--text-light)">选填，点击选择</small></label>
                             <div class="symptom-tags" id="symptomTags">
                                 <button type="button" class="symptom-tag" data-symptom="抽筋">抽筋</button>
@@ -144,7 +140,7 @@
                             <label for="notes">备注</label>
                             <textarea id="notes" rows="2" placeholder="如有不适症状等可记录" enterkeyhint="done"></textarea>
                         </div>
-                        <p class="form-tip">💡 可先保存透前数据，下机后再编辑补填透后体重和减水量</p>
+                        <p class="form-tip">💡 可先保存透前数据，下机后再编辑补填透后体重</p>
                         <button type="submit" class="btn-primary">保存记录</button>
                         <button type="button" id="cancelEditBtn" class="btn-cancel hidden">取消编辑</button>
                     </form>
@@ -194,8 +190,8 @@
                     <span class="stat-label">本月透析</span>
                 </div>
                 <div class="stat-card">
-                    <span class="stat-value" id="monthAvgFluid">0 mL</span>
-                    <span class="stat-label">平均减水</span>
+                    <span class="stat-value" id="monthAvgFluid">0 L</span>
+                    <span class="stat-label">平均超滤量</span>
                 </div>
                 <div class="stat-card">
                     <span class="stat-value" id="monthAvgGainRate">—</span>
@@ -211,9 +207,9 @@
                 </div>
             </div>
 
-            <!-- 减水量趋势 -->
+            <!-- 超滤量趋势 -->
             <div class="card">
-                <h2 class="card-title">减水量趋势</h2>
+                <h2 class="card-title">超滤量趋势</h2>
                 <div class="chart-container">
                     <canvas id="fluidChart"></canvas>
                 </div>
