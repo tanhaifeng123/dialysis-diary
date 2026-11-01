@@ -29,6 +29,7 @@ var RecordManager = {
         this.initFirstDate();
         this.render();
         this.bindEvents();
+        this.updateUfDisplay();  // 初始化超滤量显示（未设干体重时给出提示）
     },
 
     // ===== 第一次透析日期（小字条） =====
@@ -152,6 +153,7 @@ var RecordManager = {
         this.renderDryWeight();
         this.render();  // 重新渲染记录列表（历史记录涨水率不变，只更新表单提示）
         this.updateGainRateHint();  // 更新表单中的涨水率提示
+        this.updateUfDisplay();     // 干体重变了，超滤量要跟着重算
         this.collapseDryWeight();   // 保存后收起，让历史记录回到视野
         App.showToast('干体重已保存，后续新记录将使用新干体重');
     },
@@ -191,6 +193,95 @@ var RecordManager = {
         if (actualWeight <= 0) return null;
         var rate = (actualWeight - this.dryWeight) / this.dryWeight * 100;
         return Math.round(rate * 10) / 10;  // 保留1位小数
+    },
+
+    // 计算超滤量（mL）：(透前体重 - 衣服重量) - 干体重，再 ×1000 换算成 mL
+    // 返回 kg 数值（保留 2 位小数），便于展示与存储
+    calcUltrafiltration(preWeight, clothesWeight) {
+        if (!this.dryWeight || !preWeight || preWeight <= 0) return null;
+        var cw = clothesWeight || 0;
+        var actualWeight = preWeight - cw;
+        if (actualWeight <= 0) return null;
+        var kg = actualWeight - this.dryWeight;
+        return Math.round(kg * 100) / 100;  // 保留2位小数，精确到 10mL
+    },
+
+    // kg -> mL
+    ufToMl(kg) {
+        if (kg === null || kg === undefined) return null;
+        return Math.round(kg * 1000);
+    },
+
+    // 格式化超滤量显示（mL，千位分隔）
+    formatUfMl(ml) {
+        if (ml === null || ml === undefined) return null;
+        return String(ml).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    },
+
+    // 更新表单中的超滤量实时显示
+    updateUfDisplay() {
+        var box = document.getElementById('ufAutoBox');
+        var valEl = document.getElementById('ufValue');
+        var unitEl = document.getElementById('ufUnit');
+        var hintEl = document.getElementById('ufHint');
+        if (!valEl) return;
+
+        var preRaw = document.getElementById('preWeight').value;
+        var preWeight = parseFloat(preRaw);
+        var cwEl = document.getElementById('clothesWeight');
+        var clothesWeight = cwEl ? (parseFloat(cwEl.value) || 0) : 0;
+
+        // 清空状态样式
+        valEl.className = 'uf-value';
+        if (hintEl) { hintEl.textContent = ''; hintEl.className = 'uf-hint'; }
+
+        if (!this.dryWeight) {
+            valEl.textContent = '—';
+            if (unitEl) unitEl.style.display = 'inline';
+            if (hintEl) {
+                hintEl.textContent = '请先设置干体重，才能自动计算超滤量';
+                hintEl.className = 'uf-hint uf-hint-warn';
+            }
+            return;
+        }
+        if (!preWeight || preWeight <= 0) {
+            valEl.textContent = '—';
+            if (unitEl) unitEl.style.display = 'inline';
+            if (hintEl) hintEl.textContent = '填入透前体重后自动计算';
+            return;
+        }
+
+        var kg = this.calcUltrafiltration(preWeight, clothesWeight);
+        if (kg === null) {
+            valEl.textContent = '—';
+            return;
+        }
+        var ml = this.ufToMl(kg);
+
+        if (ml < 0) {
+            // 透前体重低于干体重：未涨水，提示但不显示负数
+            valEl.textContent = '0';
+            if (hintEl) {
+                hintEl.textContent = '透前实际体重比干体重低 ' + Math.abs(ml) + ' mL，无超滤需求';
+                hintEl.className = 'uf-hint uf-hint-warn';
+            }
+            return;
+        }
+
+        valEl.textContent = this.formatUfMl(ml);
+        if (ml === 0) {
+            valEl.className = 'uf-value uf-value-normal';
+            if (hintEl) { hintEl.textContent = '已达到干体重'; hintEl.className = 'uf-hint uf-hint-ok'; }
+        } else {
+            var pct = (kg / this.dryWeight) * 100;
+            var level = pct < 3 ? 'normal' : (pct < 5 ? 'warning' : 'danger');
+            valEl.className = 'uf-value uf-value-' + level;
+            if (hintEl) {
+                var txt = pct < 3 ? '正常范围' : (pct < 5 ? '偏高，注意控制饮水' : '过高，建议联系医生');
+                hintEl.textContent = '相当于干体重的 ' + (Math.round(pct * 10) / 10) + '%（' + txt + '）';
+                hintEl.className = 'uf-hint uf-hint-' + level;
+            }
+        }
     },
 
     // 涨水率等级
@@ -379,6 +470,8 @@ var RecordManager = {
 
         // 更新涨水率提示（编辑时按当前表单值实时计算）
         this.updateGainRateHint();
+        // 更新超滤量显示
+        this.updateUfDisplay();
 
         // 切换到记录页
         var navBtns = document.querySelectorAll('.nav-btn');
@@ -411,6 +504,7 @@ var RecordManager = {
         form.reset();
         this.setDefaultDate();
         this.clearSymptoms();
+        this.updateUfDisplay();
         var submitBtn = document.querySelector('#recordForm button[type="submit"]');
         submitBtn.textContent = '保存记录';
         document.getElementById('cancelEditBtn').classList.add('hidden');
@@ -565,6 +659,19 @@ var RecordManager = {
         // 待补填标记
         var pendingBadge = (!r.postWeight) ? '<span class="pending-badge">待补填</span>' : '';
 
+        // 超滤量（自动计算）：优先用存储值，旧记录实时补算
+        var ufKg = (r.ultrafiltration !== undefined && r.ultrafiltration !== null)
+            ? r.ultrafiltration
+            : self.calcUltrafiltration(r.preWeight, r.clothesWeight);
+        var ufDisplay;
+        if (ufKg === null || ufKg === undefined) {
+            ufDisplay = '<span class="data-pending">—</span>';
+        } else if (ufKg <= 0) {
+            ufDisplay = '0 mL';
+        } else {
+            ufDisplay = self.formatUfMl(self.ufToMl(ufKg)) + ' mL';
+        }
+
         return '<div class="record-item">' +
             '<div class="record-item-actions">' +
                 '<button class="btn-edit" onclick="RecordManager.edit(\'' + r.id + '\')" aria-label="编辑记录">编辑</button>' +
@@ -583,6 +690,10 @@ var RecordManager = {
                 '<div class="record-data-item">' +
                     '<span class="record-data-label">透后体重</span>' +
                     '<span class="record-data-value weight-post">' + postDisplay + '</span>' +
+                '</div>' +
+                '<div class="record-data-item">' +
+                    '<span class="record-data-label">超滤量</span>' +
+                    '<span class="record-data-value uf">' + ufDisplay + '</span>' +
                 '</div>' +
                 '<div class="record-data-item">' +
                     '<span class="record-data-label">减水量</span>' +
@@ -619,6 +730,9 @@ var RecordManager = {
 
             // 收集症状
             var symptoms = self.getSelectedSymptoms();
+            var cwVal = parseFloat(document.getElementById('clothesWeight').value) || 0;
+            // 超滤量：自动计算（透前 - 衣服 - 干体重），存 kg，展示时转 mL
+            var ufKg = self.calcUltrafiltration(preWeight, cwVal);
 
             if (self.editingId) {
                 // 编辑模式：更新记录
@@ -627,12 +741,13 @@ var RecordManager = {
                     date: document.getElementById('recordDate').value,
                     type: document.getElementById('dialysisType').value,
                     preWeight: preWeight,
-                    clothesWeight: parseFloat(document.getElementById('clothesWeight').value) || 0,
+                    clothesWeight: cwVal,
                     postWeight: postWeight,
                     fluidRemoved: fluidRemoved,
+                    ultrafiltration: ufKg,
                     symptoms: symptoms,
                     notes: document.getElementById('notes').value.trim(),
-                    gainRate: self.calcGainRate(preWeight, parseFloat(document.getElementById('clothesWeight').value) || 0),
+                    gainRate: self.calcGainRate(preWeight, cwVal),
                     dryWeightAtSave: self.dryWeight
                 };
                 self.update(self.editingId, record);
@@ -645,18 +760,20 @@ var RecordManager = {
                     date: document.getElementById('recordDate').value,
                     type: document.getElementById('dialysisType').value,
                     preWeight: preWeight,
-                    clothesWeight: parseFloat(document.getElementById('clothesWeight').value) || 0,
+                    clothesWeight: cwVal,
                     postWeight: postWeight,
                     fluidRemoved: fluidRemoved,
+                    ultrafiltration: ufKg,
                     symptoms: symptoms,
                     notes: document.getElementById('notes').value.trim(),
-                    gainRate: self.calcGainRate(preWeight, parseFloat(document.getElementById('clothesWeight').value) || 0),
+                    gainRate: self.calcGainRate(preWeight, cwVal),
                     dryWeightAtSave: self.dryWeight
                 };
                 self.add(record);
                 form.reset();
                 self.setDefaultDate();
                 self.clearSymptoms();
+                self.updateUfDisplay();
                 // 保存后收起表单，让历史记录回到视野
                 self.collapseForm();
                 App.showToast(postWeight ? '记录已保存' : '透前数据已保存，下机后记得补填');
@@ -689,14 +806,16 @@ var RecordManager = {
             self.editDryWeight();
         });
 
-        // 透前体重输入时实时计算涨水率
+        // 透前体重输入时实时计算涨水率 + 超滤量
         document.getElementById('preWeight').addEventListener('input', function() {
             self.updateGainRateHint();
+            self.updateUfDisplay();
         });
 
-        // 衣服重量输入时实时重算涨水率
+        // 衣服重量输入时实时重算涨水率 + 超滤量
         document.getElementById('clothesWeight').addEventListener('input', function() {
             self.updateGainRateHint();
+            self.updateUfDisplay();
         });
 
         // 输入框聚焦时自动滚动到可见位置（移动端键盘弹起时不遮挡）
