@@ -125,17 +125,20 @@ var StatsManager = {
         // 本月透析次数
         document.getElementById('monthDialysisCount').textContent = records.length;
 
-        // 平均减水量
-        var fluidSum = 0;
-        var fluidCount = 0;
+        // 平均超滤量（升）：优先用存储值，旧记录实时补算
+        var ufSum = 0;
+        var ufCount = 0;
         for (var i = 0; i < records.length; i++) {
-            if (records[i].fluidRemoved) {
-                fluidSum += records[i].fluidRemoved;
-                fluidCount++;
+            var uf = (records[i].ultrafiltration !== undefined && records[i].ultrafiltration !== null)
+                ? records[i].ultrafiltration
+                : RecordManager.calcUltrafiltration(records[i].preWeight, records[i].clothesWeight);
+            if (uf !== null && uf !== undefined) {
+                ufSum += uf;
+                ufCount++;
             }
         }
-        var avgFluid = fluidCount > 0 ? Math.round(fluidSum / fluidCount) : 0;
-        document.getElementById('monthAvgFluid').textContent = avgFluid + ' mL';
+        var avgUf = ufCount > 0 ? (Math.round(ufSum / ufCount * 100) / 100) : 0;
+        document.getElementById('monthAvgFluid').textContent = avgUf.toFixed(2) + ' L';
 
         // 平均涨水率
         var gainSum = 0;
@@ -235,7 +238,7 @@ var StatsManager = {
         });
     },
 
-    // 减水量趋势图（当月）
+    // 超滤量趋势图（当月）
     renderFluidChart() {
         var records = this.getMonthRecords().slice().reverse();
 
@@ -244,7 +247,12 @@ var StatsManager = {
             return (d.getMonth() + 1) + '/' + d.getDate();
         });
 
-        var fluids = records.map(function(r) { return r.fluidRemoved || 0; });
+        var fluids = records.map(function(r) {
+            var kg = (r.ultrafiltration !== undefined && r.ultrafiltration !== null)
+                ? r.ultrafiltration
+                : RecordManager.calcUltrafiltration(r.preWeight, r.clothesWeight);
+            return (kg === null || kg === undefined) ? null : Math.round(kg * 100) / 100;
+        });
 
         // 按透析类型给柱子上色：灌流/血滤等特殊类型用独立颜色
         var self = this;
@@ -299,7 +307,7 @@ var StatsManager = {
             data: {
                 labels: labels,
                 datasets: [{
-                    label: '减水量 (mL)',
+                    label: '超滤量 (L)',
                     data: fluids,
                     backgroundColor: fluidColors,
                     borderColor: fluidBorders,
@@ -318,7 +326,7 @@ var StatsManager = {
                                 var r = records[context.dataIndex];
                                 var typeName = RecordManager.TYPE_MAP[r.type] || r.type;
                                 return [
-                                    '减水量：' + context.parsed.y + ' mL',
+                                    '超滤量：' + (context.parsed.y === null ? '—' : context.parsed.y.toFixed(2) + ' L'),
                                     '透析类型：' + typeName
                                 ];
                             }
@@ -330,7 +338,7 @@ var StatsManager = {
                         beginAtZero: true,
                         ticks: {
                             font: { size: 11 },
-                            callback: function(value) { return value + ' mL'; }
+                            callback: function(value) { return value + ' L'; }
                         }
                     },
                     x: {
