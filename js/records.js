@@ -333,11 +333,6 @@ var RecordManager = {
         
         for (var i = 0; i < this.records.length; i++) {
             var r = this.records[i];
-            // 兼容旧数据：减水量 <=10 视为升，×1000 转毫升
-            if (r.fluidRemoved && r.fluidRemoved <= 10) {
-                r.fluidRemoved = Math.round(r.fluidRemoved * 1000);
-                migrated = true;
-            }
             // 兼容旧数据：没有 gainRate 字段的记录，用当前干体重补算一次并存储
             if (r.gainRate === undefined && this.dryWeight) {
                 r.gainRate = this.calcGainRate(r.preWeight, r.clothesWeight);
@@ -461,7 +456,6 @@ var RecordManager = {
         document.getElementById('preWeight').value = record.preWeight;
         document.getElementById('clothesWeight').value = record.clothesWeight || '';
         document.getElementById('postWeight').value = record.postWeight || '';
-        document.getElementById('fluidRemoved').value = record.fluidRemoved || '';
 
         // 症状回填
         this.setSelectedSymptoms(record.symptoms || []);
@@ -564,19 +558,13 @@ var RecordManager = {
             // 计算该月统计（使用记录保存时的涨水率，不随干体重变化）
             var monthGainSum = 0;
             var monthGainCount = 0;
-            var monthFluidSum = 0;
-            var monthFluidCount = 0;
             for (var ri = 0; ri < monthRecords.length; ri++) {
                 var gr = monthRecords[ri].gainRate;
                 if (gr !== null && gr !== undefined) { monthGainSum += gr; monthGainCount++; }
-                if (monthRecords[ri].fluidRemoved) { monthFluidSum += monthRecords[ri].fluidRemoved; monthFluidCount++; }
             }
             var avgGain = monthGainCount > 0 ? (Math.round(monthGainSum / monthGainCount * 10) / 10) : null;
-            var avgFluid = monthFluidCount > 0 ? Math.round(monthFluidSum / monthFluidCount) : null;
-
             var summaryParts = [monthRecords.length + ' 条记录'];
             if (avgGain !== null) summaryParts.push('均涨水率 ' + avgGain + '%');
-            if (avgFluid !== null) summaryParts.push('均减水 ' + avgFluid + ' mL');
 
             // 所有月份默认折叠，由用户点击展开
             var expanded = false;
@@ -618,15 +606,7 @@ var RecordManager = {
     // 渲染单条记录 HTML
     renderRecordItem(r) {
         var self = this;
-        var fluidDisplay = r.fluidRemoved
-            ? (r.fluidRemoved >= 1000 ? (r.fluidRemoved / 1000).toFixed(2) + ' L' : r.fluidRemoved + ' mL')
-            : '<span class="data-pending">待填</span>';
         var postDisplay = r.postWeight ? (r.postWeight + ' kg') : '<span class="data-pending">待填</span>';
-
-        // 净脱：需要透前和透后都有
-        var netDisplay = (r.postWeight && r.preWeight)
-            ? (r.preWeight - r.postWeight).toFixed(1) + ' kg'
-            : '—';
 
         // 使用记录保存时存储的涨水率；如果没有则实时补算并存储
         var gainRate = (r.gainRate !== undefined && r.gainRate !== null) ? r.gainRate : null;
@@ -667,9 +647,10 @@ var RecordManager = {
         if (ufKg === null || ufKg === undefined) {
             ufDisplay = '<span class="data-pending">—</span>';
         } else if (ufKg <= 0) {
-            ufDisplay = '0 mL';
+            ufDisplay = '0 L';
         } else {
-            ufDisplay = self.formatUfMl(self.ufToMl(ufKg)) + ' mL';
+            // 历史记录以「升」展示，保留两位小数
+            ufDisplay = (Math.round(ufKg * 100) / 100).toFixed(2) + ' L';
         }
 
         return '<div class="record-item">' +
@@ -695,14 +676,6 @@ var RecordManager = {
                     '<span class="record-data-label">超滤量</span>' +
                     '<span class="record-data-value uf">' + ufDisplay + '</span>' +
                 '</div>' +
-                '<div class="record-data-item">' +
-                    '<span class="record-data-label">减水量</span>' +
-                    '<span class="record-data-value fluid">' + fluidDisplay + '</span>' +
-                '</div>' +
-                '<div class="record-data-item">' +
-                    '<span class="record-data-label">净脱</span>' +
-                    '<span class="record-data-value">' + netDisplay + '</span>' +
-                '</div>' +
             '</div>' +
             symptomHtml +
             (r.notes ? '<div class="record-item-notes">📝 ' + self.escapeHtml(r.notes) + '</div>' : '') +
@@ -719,8 +692,6 @@ var RecordManager = {
             var preWeight = parseFloat(document.getElementById('preWeight').value);
             var postWeightVal = document.getElementById('postWeight').value.trim();
             var postWeight = postWeightVal ? parseFloat(postWeightVal) : null;
-            var fluidVal = document.getElementById('fluidRemoved').value.trim();
-            var fluidRemoved = fluidVal ? parseFloat(fluidVal) : null;
 
             // 校验：透后体重不应大于透前体重
             if (postWeight && postWeight > preWeight) {
@@ -743,7 +714,6 @@ var RecordManager = {
                     preWeight: preWeight,
                     clothesWeight: cwVal,
                     postWeight: postWeight,
-                    fluidRemoved: fluidRemoved,
                     ultrafiltration: ufKg,
                     symptoms: symptoms,
                     notes: document.getElementById('notes').value.trim(),
@@ -762,7 +732,6 @@ var RecordManager = {
                     preWeight: preWeight,
                     clothesWeight: cwVal,
                     postWeight: postWeight,
-                    fluidRemoved: fluidRemoved,
                     ultrafiltration: ufKg,
                     symptoms: symptoms,
                     notes: document.getElementById('notes').value.trim(),
@@ -866,9 +835,16 @@ var RecordManager = {
             var parts = [];
             parts.push('透前' + r.preWeight + 'kg');
             if (r.postWeight) parts.push('透后' + r.postWeight + 'kg');
-            if (r.fluidRemoved) parts.push('减水' + r.fluidRemoved + 'mL');
             if (r.clothesWeight && r.clothesWeight > 0) parts.push('衣服' + r.clothesWeight + 'kg');
             lines.push('  体重：' + parts.join('，'));
+
+            // 超滤量（升）
+            var ufExport = (r.ultrafiltration !== undefined && r.ultrafiltration !== null)
+                ? r.ultrafiltration
+                : self.calcUltrafiltration(r.preWeight, r.clothesWeight);
+            if (ufExport !== null && ufExport !== undefined) {
+                lines.push('  超滤量：' + (ufExport > 0 ? ufExport.toFixed(2) + ' L' : '0 L'));
+            }
 
             // 涨水率
             if (r.gainRate !== null && r.gainRate !== undefined) {
