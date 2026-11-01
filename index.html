@@ -110,6 +110,14 @@
                             <input type="number" id="clothesWeight" step="0.1" min="0" max="20" placeholder="如: 1.5" inputmode="decimal" enterkeyhint="next">
                         </div>
                         <div class="form-row">
+                            <label>超滤量 (mL) <small style="font-weight:400;color:var(--text-light)">自动计算 = 透前体重 − 衣服 − 干体重</small></label>
+                            <div class="uf-auto-box" id="ufAutoBox">
+                                <span class="uf-value" id="ufValue">—</span>
+                                <span class="uf-unit" id="ufUnit">mL</span>
+                            </div>
+                        </div>
+                        <p class="uf-hint" id="ufHint"></p>
+                        <div class="form-row">
                             <label for="postWeight">透后体重 (kg) <small style="font-weight:400;color:var(--text-light)">选填，下机后补填</small></label>
                             <input type="number" id="postWeight" step="0.1" min="20" max="200" placeholder="下机后填写" inputmode="decimal" enterkeyhint="next">
                         </div>
