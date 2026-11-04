@@ -108,10 +108,20 @@ var App = {
     initTabNav() {
         const navBtns = document.querySelectorAll('.nav-btn');
         const tabPages = document.querySelectorAll('.tab-page');
+        const self = this;
+
+        // 每个 tab 各自记住滚动位置，切换时恢复，避免新页面停在旧页面的滚动高度
+        this.tabScrollPos = this.tabScrollPos || {};
 
         navBtns.forEach(btn => {
             btn.addEventListener('click', () => {
                 const tabName = btn.dataset.tab;
+                var cur = document.querySelector('.tab-page.active');
+                var curName = cur ? (cur.id || '').replace('tab-', '') : '';
+                // 记录离开前的滚动位置
+                if (curName && curName !== tabName) {
+                    self.tabScrollPos[curName] = window.pageYOffset || document.documentElement.scrollTop || 0;
+                }
 
                 // 更新导航按钮状态
                 navBtns.forEach(b => b.classList.remove('active'));
@@ -119,7 +129,12 @@ var App = {
 
                 // 更新页面显示
                 tabPages.forEach(page => page.classList.remove('active'));
-                document.getElementById(`tab-${tabName}`).classList.add('active');
+                var target = document.getElementById(`tab-${tabName}`);
+                if (target) target.classList.add('active');
+
+                // 恢复该 tab 自己的滚动位置（首次进入回到顶部）
+                var y = self.tabScrollPos[tabName] || 0;
+                this.restoreScroll(y);
 
                 // 如果切换到统计页，刷新图表
                 if (tabName === 'stats') {
@@ -130,6 +145,20 @@ var App = {
                     setTimeout(() => BpManager.refresh(), 100);
                 }
             });
+        });
+    },
+
+    // 恢复滚动位置：立即设置一次，再在下一帧与 80ms 后校正
+    // （页面高度在切换后可能异步变化，例如表格/图表渲染，导致首次 scrollTo 被截断）
+    restoreScroll(y) {
+        if (!y || y < 0) y = 0;
+        var apply = function() {
+            window.scrollTo(0, y);
+        };
+        apply();
+        requestAnimationFrame(function() {
+            apply();
+            setTimeout(apply, 80);
         });
     },
 
@@ -737,15 +766,15 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // ===== iOS 键盘弹收适配 =====
-// 键盘收起后，页面可能被推上去不回弹
+// 键盘收起后页面可能被推上去不回弹：只在「确实被顶飞」时修正，绝不无条件回顶部
 function fixIOSKeyboard() {
-    // 输入框失焦时，滚动回顶部偏移
     document.addEventListener('blur', function(e) {
-        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
-            // 小延迟等键盘动画完成
+        if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') return;
+        var y = window.pageYOffset || document.documentElement.scrollTop || 0;
+        // 只有页面被键盘顶到负值或异常偏移时，才回弹到 0
+        if (y < 0) {
             setTimeout(function() {
                 window.scrollTo(0, 0);
-                document.body.scrollTop = 0;
             }, 50);
         }
     }, true);
