@@ -32,7 +32,11 @@ html {
     /* 禁止双指缩放，页面始终适配手机屏幕宽度 */
     touch-action: pan-y;
     -ms-touch-action: pan-y;
-    overflow-x: hidden;
+    /* 注意：这里绝不能写 overflow-x: hidden。
+       一旦 html/body 出现 overflow-x: hidden，浏览器会把根滚动容器换成 body，
+       顶部标题栏和折叠头的 position: sticky 会整体失效（上滑后标题被页面上滚带走）。
+       横向溢出改用 clip 处理，clip 不会创建滚动容器。 */
+    overflow-x: clip;
 }
 
 body {
@@ -44,7 +48,7 @@ body {
     min-height: 100vh;
     width: 100%;
     max-width: 100vw;
-    overflow-x: hidden;
+    overflow-x: clip;
     -webkit-font-smoothing: antialiased;
     -webkit-touch-callout: none;
     /* 允许触摸纵向滚动，禁止横向拖动与缩放 */
@@ -3032,4 +3036,40 @@ body {
 .ktv-history-detail .ktv-detail-row {
     padding: 5px 0;
     font-size: 12.5px;
+}
+
+/* ===== 指标页：表单/计算器展开后标题吸顶 =====
+   展开后页面会变长，上滑看数据时标题始终停在顶部标题栏下方，
+   不用滑回顶部就能点标题收起。 */
+.metric-form-card {
+    /* 让卡片自身不裁剪吸顶的子元素 */
+    overflow: visible;
+}
+
+.metric-form-card .metric-form-toggle {
+    position: sticky;
+    top: var(--sticky-offset, 57px);
+    z-index: 12;
+    /* 吸顶时必须有不透明背景，否则下方内容会透出来 */
+    background: var(--card-bg, #fff);
+    /* 抵消卡片内边距，让吸顶条横向铺满卡片 */
+    margin-left: -16px;
+    margin-right: -16px;
+    padding-left: 16px;
+    padding-right: 16px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    border-radius: var(--radius) var(--radius) 0 0;
+    box-shadow: 0 1px 0 rgba(0, 0, 0, 0.04);
+}
+
+/* 卡片收起时标题无需吸顶（内容本来就短） */
+.metric-form-card.collapsed .metric-form-toggle {
+    position: static;
+    background: transparent;
+    box-shadow: none;
+    margin-left: 0;
+    margin-right: 0;
+    padding-left: 0;
+    padding-right: 0;
 }
