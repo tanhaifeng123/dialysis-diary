@@ -2797,3 +2797,186 @@ body {
 .backup-status-err {
     color: var(--danger);
 }
+
+/* ========== 透析充分性计算（Kt/V） ========== */
+.ktv-import-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.ktv-select {
+    flex: 1;
+    min-width: 0;
+    box-sizing: border-box;
+    padding: 10px 8px;
+    border: 1px solid #E0E0E0;
+    border-radius: var(--radius-sm);
+    font-size: 14px;
+    background: #FAFBFC;
+    color: var(--text-primary);
+}
+
+.ktv-adv-toggle {
+    margin: 14px 0 8px;
+    font-size: 13px;
+    color: var(--text-light);
+    cursor: pointer;
+    user-select: none;
+    padding: 6px 0;
+}
+
+.ktv-adv-toggle span {
+    display: inline-block;
+    width: 14px;
+    font-size: 11px;
+    color: var(--primary);
+}
+
+.ktv-result {
+    margin-top: 16px;
+}
+
+.ktv-result-empty {
+    padding: 18px 12px;
+    text-align: center;
+    font-size: 13px;
+    color: var(--text-light);
+    background: #F7F9FB;
+    border-radius: var(--radius-md);
+}
+
+.ktv-main {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+.ktv-main-item {
+    padding: 12px 10px;
+    border-radius: var(--radius-md);
+    text-align: center;
+    border: 1px solid transparent;
+}
+
+.ktv-main-item.good {
+    background: #EAF7EE;
+    border-color: #C6E9D0;
+}
+
+.ktv-main-item.warn {
+    background: #FFF6E5;
+    border-color: #FBE0B0;
+}
+
+.ktv-main-item.bad {
+    background: #FDECEC;
+    border-color: #F7C9C9;
+}
+
+.ktv-main-label {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-bottom: 4px;
+}
+
+.ktv-main-value {
+    font-size: 26px;
+    font-weight: 700;
+    line-height: 1.15;
+    color: var(--text-primary);
+}
+
+.ktv-main-value small {
+    font-size: 13px;
+    font-weight: 500;
+    margin-left: 1px;
+}
+
+.ktv-main-tag {
+    margin-top: 4px;
+    font-size: 11px;
+    color: var(--text-light);
+}
+
+.ktv-detail {
+    margin-top: 12px;
+    border-top: 1px dashed #E8ECEF;
+}
+
+.ktv-detail-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 7px 2px;
+    font-size: 13px;
+    color: var(--text-secondary);
+    border-bottom: 1px solid #F2F5F7;
+}
+
+.ktv-detail-row b {
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+.ktv-tips {
+    margin-top: 10px;
+    padding: 10px 12px;
+    background: #F5F9FF;
+    border-radius: var(--radius-sm);
+    font-size: 12.5px;
+    line-height: 1.6;
+    color: var(--text-secondary);
+}
+
+.ktv-tips p {
+    margin: 0 0 4px;
+}
+
+.ktv-tips p:last-child {
+    margin-bottom: 0;
+}
+
+.ktv-save-row {
+    display: flex;
+    gap: 8px;
+    margin-top: 14px;
+}
+
+.ktv-save-row .btn-primary {
+    flex: 1;
+    margin: 0;
+}
+
+.ktv-history-title {
+    margin: 16px 0 6px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--primary);
+}
+
+.ktv-history-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 4px;
+    font-size: 13px;
+    color: var(--text-secondary);
+    border-bottom: 1px solid #F2F5F7;
+}
+
+.ktv-history-row span:first-child {
+    min-width: 78px;
+}
+
+.ktv-history-row b.good {
+    color: #2E9E5B;
+}
+
+.ktv-history-row b.bad {
+    color: #D9534F;
+}
+
+.ktv-history-row .metric-op-btn {
+    margin-left: auto;
+}
