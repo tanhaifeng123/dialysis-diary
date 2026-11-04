@@ -35,7 +35,9 @@ html {
     /* 注意：这里绝不能写 overflow-x: hidden。
        一旦 html/body 出现 overflow-x: hidden，浏览器会把根滚动容器换成 body，
        顶部标题栏和折叠头的 position: sticky 会整体失效（上滑后标题被页面上滚带走）。
-       横向溢出改用 clip 处理，clip 不会创建滚动容器。 */
+       横向溢出改用 clip 处理，clip 不会创建滚动容器。
+       clip 需要 Chrome 90+ / Safari 16+；更老的内核（旧安卓 WebView、
+       部分国产 App 内嵌浏览器）会整条忽略，退化方案见文件末尾 @supports 块。 */
     overflow-x: clip;
 }
 
@@ -3072,4 +3074,41 @@ body {
     margin-right: 0;
     padding-left: 0;
     padding-right: 0;
+}
+
+/* ===== 老内核兜底：不支持 overflow-x: clip 的环境 =====
+   背景：html/body 上写 overflow-x: hidden 会把根滚动容器从 html 换成 body，
+         实测页面直接「滚不动」（pageYOffset 恒为 0、body.scrollTop 恒为 0），
+         .app-header 与折叠标题的吸顶同时失效。所以 hidden 绝对不能退回。
+         overflow-x: auto 同样有害：实测它会创建嵌套滚动容器，页面滚不动（已测 FAIL）。
+   clip 需要 Chrome 90+ / Safari 16+；旧安卓 WebView（Chrome<90）、
+   部分国产 App 内嵌浏览器不认这条声明，会整条忽略 → 计算值退回 visible。
+   实测 visible 下吸顶完全正常（headerTop=0、折叠标题 toggleTop = 标题栏高度），
+   唯一副作用是横向内容会把页面撑宽（docW 1830 / winW 412）。因此兜底只做两件事：
+   不要干预根元素的 overflow，改为让已知的溢出源自己收住宽度。 */
+@supports not (overflow-x: clip) {
+    /* 根元素保持默认 visible，绝不设 hidden/auto，sticky 才不会失效 */
+    html,
+    body {
+        max-width: 100%;
+    }
+
+    /* 已知的横向溢出源：表格容器自己横向滚动，其余限制在容器宽度内 */
+    .metric-table-wrap {
+        max-width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    #app,
+    .tab-page,
+    .food-list,
+    .metric-form-card,
+    .video-title {
+        max-width: 100%;
+    }
+
+    .video-title {
+        overflow: hidden;
+    }
 }
