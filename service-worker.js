@@ -1,6 +1,6 @@
 // Service Worker - 离线缓存
 
-const CACHE_NAME = 'dialysis-workbench-v72';
+const CACHE_NAME = 'dialysis-workbench-v73';
 const ASSETS = [
     './',
     './index.html',
