@@ -630,7 +630,13 @@ var MetricsManager = {
             bunPost: r.bunPost,
             uf: r.ufKg,
             weight: r.weight,
-            duration: r.duration
+            duration: r.duration,
+            preWeight: this.ktvNum('ktv_preWeight'),
+            postWeight: this.ktvNum('ktv_postWeight') || r.weight,
+            V: r.V,
+            Vsrc: r.Vsrc,
+            clearance: r.clearance,
+            R: Math.round(r.R * 1000) / 1000
         };
         // 同一天只保留最新一条
         this.ktvRecords = this.ktvRecords.filter(function(x) { return x.date !== date; });
@@ -649,7 +655,7 @@ var MetricsManager = {
         App.showToast('已删除');
     },
 
-    // Kt/V 历史（暂并入指标表格下方，简单列表）
+    // Kt/V 历史列表（每条可展开查看当次全部参数）
     renderKtvHistory() {
         var el = document.getElementById('ktvHistory');
         if (!el) return;
@@ -660,14 +666,46 @@ var MetricsManager = {
         var html = '<div class="ktv-history-title">历史 Kt/V 记录</div>';
         this.ktvRecords.forEach(function(r) {
             var cls = r.ktv >= 1.2 ? 'good' : 'bad';
-            html += '<div class="ktv-history-row">' +
-                '<span>' + r.date + '</span>' +
-                '<b class="' + cls + '">Kt/V ' + r.ktv.toFixed(2) + '</b>' +
-                '<span>URR ' + r.urr.toFixed(1) + '%</span>' +
-                '<button type="button" class="metric-op-btn" onclick="MetricsManager.removeKtvRecord(\'' + r.id + '\')" aria-label="删除">🗑️</button>' +
+            var open = this.ktvExpanded === r.id;
+            html += '<div class="ktv-history-item' + (open ? ' open' : '') + '">' +
+                '<div class="ktv-history-row">' +
+                    '<span class="ktv-history-date">' + r.date + '</span>' +
+                    '<b class="' + cls + '">Kt/V ' + r.ktv.toFixed(2) + '</b>' +
+                    '<span class="ktv-history-urr">URR ' + r.urr.toFixed(1) + '%</span>' +
+                    '<button type="button" class="ktv-detail-btn" onclick="MetricsManager.toggleKtvDetail(\'' + r.id + '\')" aria-label="查看参数">' +
+                        (open ? '收起 ▴' : '参数 ▾') + '</button>' +
+                    '<button type="button" class="metric-op-btn" onclick="MetricsManager.removeKtvRecord(\'' + r.id + '\')" aria-label="删除">🗑️</button>' +
                 '</div>';
-        });
+            if (open) html += this.ktvDetailHtml(r);
+            html += '</div>';
+        }, this);
         el.innerHTML = html;
+    },
+
+    // 展开/收起某条历史的参数
+    toggleKtvDetail(id) {
+        this.ktvExpanded = (this.ktvExpanded === id) ? null : id;
+        this.renderKtvHistory();
+    },
+
+    // 单条历史的参数明细
+    ktvDetailHtml(r) {
+        var rows = [];
+        rows.push(['透前 BUN', r.bunPre + ' mmol/L']);
+        rows.push(['透后 BUN', r.bunPost + ' mmol/L']);
+        if (r.R !== undefined) rows.push(['BUN 下降比值 R', Number(r.R).toFixed(3)]);
+        rows.push(['治疗时长', r.duration + ' h']);
+        rows.push(['超滤量', (r.uf !== undefined ? Number(r.uf).toFixed(2) : '—') + ' L']);
+        rows.push(['透前体重', (r.preWeight !== undefined && r.preWeight !== null ? r.preWeight : '—') + ' kg']);
+        rows.push(['透后体重', (r.postWeight !== undefined && r.postWeight !== null ? r.postWeight.toFixed(1) : r.weight) + ' kg']);
+        if (r.V) rows.push(['尿素分布容积 V' + (r.Vsrc ? '（' + r.Vsrc + '）' : ''), r.V + ' L']);
+        if (r.clearance) rows.push(['等效尿素清除率 K', r.clearance + ' mL/min']);
+        var html = '<div class="ktv-history-detail">';
+        rows.forEach(function(p) {
+            html += '<div class="ktv-detail-row"><span>' + p[0] + '</span><b>' + p[1] + '</b></div>';
+        });
+        html += '</div>';
+        return html;
     },
 
     // 渲染表格
