@@ -299,6 +299,98 @@
                 <p class="metric-legend">🔴 偏高于目标范围　🟠 低于目标范围　↑↓ 相对上次检查的变化</p>
                 <p class="food-source">目标范围参考 KDOQI 指南及中国肾性贫血/CKD-MBD 诊疗指南（透析患者），仅供自我监测参考，具体以医生解读为准</p>
             </div>
+
+            <!-- 透析充分性计算器（Kt/V） -->
+            <div class="card metric-form-card collapsed" id="ktvCard">
+                <h2 class="card-title metric-form-toggle" id="ktvTitle" onclick="MetricsManager.toggleKtv()">
+                    <span class="metric-toggle-icon" id="ktvIcon">▶</span>
+                    透析充分性计算（Kt/V）
+                    <small class="metric-toggle-tip">点击展开计算</small>
+                </h2>
+                <div class="metric-form-body" id="ktvBody" style="display:none">
+                    <p class="metric-hint">录入本次透析的化验与治疗参数，自动算出 Kt/V、URR 与是否达标</p>
+
+                    <p class="metric-group-label">方式一：导入本次透析记录（可选）</p>
+                    <div class="ktv-import-row">
+                        <select id="ktvRecordSelect" class="ktv-select">
+                            <option value="">选择一条透析记录自动带入</option>
+                        </select>
+                        <button type="button" class="btn-outline-small" onclick="MetricsManager.importFromRecord()">带入</button>
+                    </div>
+
+                    <p class="metric-group-label">血尿素氮（透前 / 透后）</p>
+                    <div class="metric-input-grid">
+                        <div class="metric-field">
+                            <label for="ktv_bunPre">透前 BUN <small>mmol/L</small></label>
+                            <input type="number" id="ktv_bunPre" step="0.01" min="1" max="80" placeholder="如 26.5" inputmode="decimal" enterkeyhint="next">
+                        </div>
+                        <div class="metric-field">
+                            <label for="ktv_bunPost">透后 BUN <small>mmol/L</small></label>
+                            <input type="number" id="ktv_bunPost" step="0.01" min="0.5" max="60" placeholder="如 7.2" inputmode="decimal" enterkeyhint="done">
+                        </div>
+                    </div>
+
+                    <p class="metric-group-label">治疗参数</p>
+                    <div class="metric-input-grid">
+                        <div class="metric-field">
+                            <label for="ktv_ufVol">超滤量 <small>mL</small></label>
+                            <input type="number" id="ktv_ufVol" step="10" min="0" max="10000" placeholder="如 2000" inputmode="decimal" enterkeyhint="next">
+                        </div>
+                        <div class="metric-field">
+                            <label for="ktv_duration">治疗时长 <small>小时</small></label>
+                            <input type="number" id="ktv_duration" step="0.1" min="0.5" max="12" placeholder="如 4" inputmode="decimal" enterkeyhint="next">
+                        </div>
+                        <div class="metric-field">
+                            <label for="ktv_preWeight">透前体重 <small>kg</small></label>
+                            <input type="number" id="ktv_preWeight" step="0.1" min="20" max="200" placeholder="如 60" inputmode="decimal" enterkeyhint="next">
+                        </div>
+                        <div class="metric-field">
+                            <label for="ktv_postWeight">透后体重 <small>kg</small></label>
+                            <input type="number" id="ktv_postWeight" step="0.1" min="20" max="200" placeholder="自动算 = 透前 − 超滤" inputmode="decimal" enterkeyhint="done">
+                        </div>
+                    </div>
+
+                    <!-- 不常用参数：使用默认值即可 -->
+                    <div class="ktv-adv-toggle" onclick="MetricsManager.toggleKtvAdvanced()">
+                        <span id="ktvAdvIcon">▶</span> 高级参数（一般无需修改）
+                    </div>
+                    <div id="ktvAdvBody" class="metric-input-grid" style="display:none">
+                        <div class="metric-field">
+                            <label for="ktv_age">年龄 <small>岁</small></label>
+                            <input type="number" id="ktv_age" step="1" min="10" max="110" placeholder="选填，用于 Watson 公式" inputmode="numeric">
+                        </div>
+                        <div class="metric-field">
+                            <label for="ktv_sex">性别</label>
+                            <select id="ktv_sex" class="ktv-select">
+                                <option value="male">男</option>
+                                <option value="female">女</option>
+                            </select>
+                        </div>
+                        <div class="metric-field">
+                            <label for="ktv_height">身高 <small>cm</small></label>
+                            <input type="number" id="ktv_height" step="0.5" min="100" max="220" placeholder="选填，如 170" inputmode="decimal">
+                        </div>
+                        <div class="metric-field">
+                            <label for="ktv_v">尿素分布容积 V <small>L</small></label>
+                            <input type="number" id="ktv_v" step="0.1" min="15" max="80" placeholder="留空则按体重×0.58" inputmode="decimal">
+                        </div>
+                    </div>
+
+                    <!-- 计算结果 -->
+                    <div class="ktv-result" id="ktvResult">
+                        <div class="ktv-result-empty">录入 BUN 与治疗时长后自动计算</div>
+                    </div>
+
+                    <form id="ktvSaveForm" class="ktv-save-row hidden">
+                        <input type="date" id="ktvSaveDate" class="ktv-select">
+                        <button type="submit" class="btn-primary">保存这次结果</button>
+                    </form>
+
+                    <div id="ktvHistory"></div>
+
+                    <p class="food-source">公式：Kt/V(sp) = −ln(R − 0.008×t) + (4 − 3.5R)×UF/W（Daugirdas 第二版）；URR = (透前−透后)/透前×100%。目标 Kt/V ≥ 1.2、URR ≥ 65%（KDOQI / 中国血液透析充分性共识）。本工具仅供自我监测，实际透析剂量请以医院检测（如 Kt/V 机器测定）为准</p>
+                </div>
+            </div>
         </section>
 
         <!-- Tab 4: 血压记录 -->
