@@ -124,6 +124,7 @@ button.plain {
     <label>对方的申请码</label>
     <input id="req" placeholder="XXXX-XXXX-XXXX" autocapitalize="characters" autocomplete="off" spellcheck="false">
     <button id="genBtn">生成激活码</button>
+    <button class="plain" id="pasteBtn" style="margin-top:10px;">📋 粘贴申请码并生成（无需键盘）</button>
     <p class="err" id="err"></p>
     <div class="result" id="result">
         <label>发给对方的激活码</label>
@@ -198,7 +199,24 @@ async function copyOut() {
     } catch (e) {}
 }
 
+// ===== 粘贴生成（键盘弹不出时用） =====
+async function pasteGen() {
+    var err = document.getElementById('err');
+    try {
+        var text = await navigator.clipboard.readText();
+        if (!text) throw new Error('empty');
+        document.getElementById('req').value = text.trim();
+        gen();
+    } catch (e) {
+        err.textContent = '剪贴板读取未授权，请点输入框长按粘贴';
+        var inp = document.getElementById('req');
+        inp.focus();
+        inp.click();
+    }
+}
+
 // ===== 启动 =====
+document.getElementById('pasteBtn').addEventListener('click', pasteGen);
 document.getElementById('lockBtn').addEventListener('click', tryLock);
 document.getElementById('lockPass').addEventListener('keydown', function(e){ if (e.key === 'Enter') tryLock(); });
 document.getElementById('genBtn').addEventListener('click', gen);
