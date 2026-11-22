@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>发码器 · 透析日记（管理员专用）</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: linear-gradient(160deg, #1A2332 0%, #1976D2 100%);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+.card {
+    width: 100%;
+    max-width: 380px;
+    background: #fff;
+    border-radius: 20px;
+    padding: 30px 24px;
+    box-shadow: 0 16px 48px rgba(0,0,0,.28);
+    text-align: center;
+}
+h1 { font-size: 20px; color: #1A2332; margin-bottom: 6px; }
+.sub { font-size: 13px; color: #607D8B; margin-bottom: 22px; line-height: 1.6; }
+label { display: block; font-size: 13px; color: #607D8B; text-align: left; margin-bottom: 6px; }
+input {
+    width: 100%;
+    padding: 14px;
+    font-size: 17px;
+    letter-spacing: 2px;
+    text-align: center;
+    font-family: 'SF Mono', Menlo, Consolas, monospace;
+    border: 1.5px solid #E0E7EE;
+    border-radius: 12px;
+    background: #F5F8FB;
+    outline: none;
+    margin-bottom: 14px;
+}
+input:focus { border-color: #1976D2; background: #fff; }
+button {
+    width: 100%;
+    padding: 13px;
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    color: #fff;
+    background: linear-gradient(135deg, #1976D2, #1565C0);
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+}
+button.plain {
+    background: #fff;
+    color: #1976D2;
+    border: 1.5px solid #1976D2;
+    margin-top: 10px;
+    letter-spacing: 1px;
+}
+.result {
+    display: none;
+    margin-top: 18px;
+}
+.code {
+    font-family: 'SF Mono', Menlo, Consolas, monospace;
+    font-size: 24px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: #1565C0;
+    background: #EDF4FC;
+    border: 1.5px dashed #42A5F5;
+    border-radius: 12px;
+    padding: 16px 10px;
+    margin-bottom: 12px;
+    user-select: all;
+}
+.tip { font-size: 12px; color: #90A4AE; margin-top: 14px; line-height: 1.6; }
+.err { color: #E53935; font-size: 13px; margin-top: 10px; min-height: 18px; }
+</style>
+</head>
+<body>
+<div class="card">
+    <h1>🔑 发码器</h1>
+    <p class="sub">对方把他设备上的「申请码」发给你，<br>粘贴到下面，生成只对他设备有效的激活码。</p>
+    <label>对方的申请码</label>
+    <input id="req" placeholder="XXXX-XXXX-XXXX" autocapitalize="characters" autocomplete="off" spellcheck="false" inputmode="text">
+    <button onclick="gen()">生成激活码</button>
+    <button class="plain" id="pasteBtn" onclick="pasteGen()">📋 粘贴申请码并生成（无需键盘）</button>
+    <p class="err" id="err"></p>
+    <div class="result" id="result">
+        <label>发给对方的激活码</label>
+        <div class="code" id="out"></div>
+        <button class="plain" onclick="copyOut()">📋 复制激活码</button>
+    </div>
+    <p class="tip">⚠️ 此文件请保存在你自己的电脑/手机，<br>不要发给别人、不要上传到网上。</p>
+    <p class="tip">📱 若键盘弹不出来：请勿在聊天预览/微信里打开，<br>改用系统浏览器打开本文件；或直接用上面「粘贴」按钮。</p>
+</div>
+<script>
+// 与 activation.js 中的 SECRET 保持一致；更换时两边同步改
+var SECRET = 'HF-DIALYSIS-SECRET-2026-X7Q';
+
+function norm(s) { return (s || '').toUpperCase().replace(/[^A-Z0-9]/g, ''); }
+function fmt12(hex) { return hex.slice(0, 12).toUpperCase().replace(/(.{4})/g, '$1-').replace(/-$/, ''); }
+
+async function sha256(str) {
+    var buf = new TextEncoder().encode(str);
+    var d = await crypto.subtle.digest('SHA-256', buf);
+    return Array.from(new Uint8Array(d)).map(function(b){ return b.toString(16).padStart(2, '0'); }).join('');
+}
+
+async function gen() {
+    var req = norm(document.getElementById('req').value);
+    var err = document.getElementById('err');
+    var res = document.getElementById('result');
+    if (req.length < 8) { err.textContent = '申请码看起来不对，应为 12 位'; res.style.display = 'none'; return; }
+    err.textContent = '';
+    var h = await sha256(SECRET + '|' + req);
+    document.getElementById('out').textContent = fmt12(h);
+    res.style.display = 'block';
+}
+
+function copyOut() {
+    var t = document.getElementById('out').textContent;
+    navigator.clipboard.writeText(t).then(function() {
+        var b = document.querySelector('button.plain');
+        b.textContent = '✅ 已复制';
+        setTimeout(function(){ b.textContent = '📋 复制激活码'; }, 1500);
+    });
+}
+
+document.getElementById('req').addEventListener('keydown', function(e){ if (e.key === 'Enter') gen(); });
+
+// 不依赖键盘：直接读取剪贴板里的申请码并生成
+async function pasteGen() {
+    var err = document.getElementById('err');
+    var btn = document.getElementById('pasteBtn');
+    try {
+        var text = await navigator.clipboard.readText();
+        if (!text) throw new Error('empty');
+        document.getElementById('req').value = text.trim();
+        gen();
+    } catch (e) {
+        err.textContent = '读取剪贴板未授权或不可用，请点输入框手动粘贴（长按→粘贴）';
+        // 兜底：强制聚焦，尝试唤起键盘
+        var inp = document.getElementById('req');
+        inp.focus();
+        inp.click();
+    }
+}
+</script>
+</body>
+</html>
