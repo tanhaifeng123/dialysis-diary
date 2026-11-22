@@ -184,7 +184,7 @@ async function gen() {
     var req = norm(document.getElementById('req').value);
     var err = document.getElementById('err');
     var res = document.getElementById('result');
-    if (req.length < 8) { err.textContent = '申请码看起来不对，应为 12 位'; res.style.display = 'none'; return; }
+    if (!/^[0-9A-F]{12}$/.test(req)) { err.textContent = '这不是有效的申请码：设备申请码为 12 位数字/A-F（如 142161A0B9D5）。请到工作台激活页复制申请码，不要粘贴网址或其他文字'; res.style.display = 'none'; return; }
     err.textContent = '';
     document.getElementById('out').textContent = await derive(req);
     res.style.display = 'block';
