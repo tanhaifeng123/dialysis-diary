@@ -1,5 +1,5 @@
 // 发码器 Service Worker —— 独立缓存
-const CACHE_NAME = 'issuer-app-v2';
+const CACHE_NAME = 'issuer-app-v3';
 const ASSETS = [
     './issuer.html',
     './manifest.json',
